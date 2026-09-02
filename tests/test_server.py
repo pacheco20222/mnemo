@@ -1,0 +1,127 @@
+import os
+
+import anyio
+import pytest
+from fastmcp import Client
+
+from mnemo import embeddings, server, store
+
+
+def test_memory_add_and_search_round_trip():
+    added = server.memory_add("prefer uv over pip for this project", "decision")
+    assert added["project"] == server.PROJECT
+    assert added["type"] == "decision"
+    assert added["id"]
+
+    results = server.memory_search("what package manager should I use")
+    assert any(r["id"] == added["id"] for r in results)
+
+
+def test_memory_add_rejects_invalid_type():
+    with pytest.raises(ValueError):
+        server.memory_add("bad type memory", "nonsense")
+
+
+def test_memory_search_filters_by_type():
+    added = server.memory_add("a specific bug about vector size mismatch", "bug")
+    bugs = server.memory_search("vector size mismatch", type="bug")
+    assert any(r["id"] == added["id"] for r in bugs)
+
+
+def test_mcp_protocol_round_trip():
+    async def run():
+        async with Client(server.mcp) as client:
+            add_result = await client.call_tool(
+                "memory_add", {"content": "mcp protocol smoke test", "type": "note"}
+            )
+            assert add_result.data["project"] == server.PROJECT
+
+            search_result = await client.call_tool(
+                "memory_search", {"query": "mcp protocol smoke test"}
+            )
+            assert any(r["id"] == add_result.data["id"] for r in search_result.data)
+
+    anyio.run(run)
+
+
+def test_server_instructions_cover_checkpoint_workflow():
+    assert "checkpoint" in server.mcp.instructions
+    assert "memory_add" in server.mcp.instructions
+
+
+def test_memory_set_document_creates_and_replaces():
+    first = server.memory_set_document("plan-test-doc", "version one", "note")
+    assert first["slug"] == "plan-test-doc"
+    assert first["content"] == "version one"
+
+    fetched = server.memory_get_document("plan-test-doc")
+    assert fetched is not None
+    assert fetched["content"] == "version one"
+    assert fetched["id"] == first["id"]
+
+    second = server.memory_set_document("plan-test-doc", "version two", "note")
+    assert second["id"] == first["id"]
+
+    fetched_again = server.memory_get_document("plan-test-doc")
+    assert fetched_again["content"] == "version two"
+    assert fetched_again["id"] == first["id"]
+
+
+def test_memory_get_document_returns_none_for_unknown_slug():
+    assert server.memory_get_document("a-slug-that-was-never-set") is None
+
+
+def test_mcp_protocol_document_round_trip():
+    async def run():
+        async with Client(server.mcp) as client:
+            set_result = await client.call_tool(
+                "memory_set_document", {"slug": "protocol-test-doc", "content": "hello", "type": "note"}
+            )
+            assert set_result.data["slug"] == "protocol-test-doc"
+
+            get_result = await client.call_tool("memory_get_document", {"slug": "protocol-test-doc"})
+            assert get_result.data["content"] == "hello"
+
+            missing_result = await client.call_tool(
+                "memory_get_document", {"slug": "definitely-not-a-real-slug"}
+            )
+            assert missing_result.data is None
+
+    anyio.run(run)
+
+
+def test_server_instructions_cover_document_workflow():
+    assert "memory_set_document" in server.mcp.instructions
+    assert "memory_get_document" in server.mcp.instructions
+
+
+def test_memory_search_global_sees_other_projects():
+    client = store.get_client()
+    collection = os.environ["MNEMO_COLLECTION"]
+    other_id = store.add_memory(
+        client, embeddings.embed_text("cross-project global search probe"),
+        "cross-project global search probe", "a-totally-different-project", "note",
+        collection=collection,
+    )
+
+    results = server.memory_search_global("cross-project global search probe")
+    assert any(r["id"] == other_id for r in results)
+
+
+def test_mcp_protocol_global_search_round_trip():
+    async def run():
+        async with Client(server.mcp) as client:
+            add_result = await client.call_tool(
+                "memory_add", {"content": "protocol global search probe", "type": "note"}
+            )
+            search_result = await client.call_tool(
+                "memory_search_global", {"query": "protocol global search probe"}
+            )
+            assert any(r["id"] == add_result.data["id"] for r in search_result.data)
+
+    anyio.run(run)
+
+
+def test_server_instructions_cover_global_search_scope():
+    assert "memory_search_global" in server.mcp.instructions
+    assert "every project" in server.mcp.instructions

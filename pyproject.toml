@@ -1,0 +1,31 @@
+[project]
+name = "mnemo"
+version = "1.0.0"
+description = "Self-hosted, project-scoped memory MCP server for Claude Code and Codex"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Jose Pacheco", email = "jrp2022@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=3.4.7",
+    "httpx>=0.28.1",
+    "qdrant-client>=1.19.0",
+]
+
+[project.scripts]
+mnemo = "mnemo.cli:main"
+mnemo-recall = "mnemo.recall:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

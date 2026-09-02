@@ -1,0 +1,73 @@
+import json
+import math
+import os
+
+import pytest
+
+from mnemo import embeddings, graph_cli, store
+
+
+def test_cosine_identical_vectors_is_one():
+    v = [1.0, 2.0, 3.0]
+    assert math.isclose(graph_cli._cosine(v, v), 1.0, rel_tol=1e-9)
+
+
+def test_cosine_orthogonal_vectors_is_zero():
+    assert math.isclose(graph_cli._cosine([1.0, 0.0], [0.0, 1.0]), 0.0, abs_tol=1e-9)
+
+
+def test_build_graph_data_creates_knn_edges():
+    records = [
+        {"id": "a", "vector": [1.0, 0.0, 0.0], "project": "p", "type": "note", "content": "a"},
+        {"id": "b", "vector": [0.99, 0.01, 0.0], "project": "p", "type": "note", "content": "b"},
+        {"id": "c", "vector": [0.0, 1.0, 0.0], "project": "p", "type": "note", "content": "c"},
+    ]
+    graph = graph_cli._build_graph_data(records, k=1)
+    assert graph["k"] == 1
+    assert len(graph["nodes"]) == 3
+    edge_pairs = {frozenset((e["source"], e["target"])) for e in graph["edges"]}
+    assert frozenset(("a", "b")) in edge_pairs
+
+
+def test_build_graph_data_handles_k_larger_than_available_neighbors():
+    records = [
+        {"id": "a", "vector": [1.0, 0.0], "project": "p", "type": "note", "content": "a"},
+        {"id": "b", "vector": [0.0, 1.0], "project": "p", "type": "note", "content": "b"},
+    ]
+    graph = graph_cli._build_graph_data(records, k=5)
+    assert len(graph["edges"]) == 1
+
+
+def test_render_html_embeds_graph_json():
+    graph = {"nodes": [{"id": "a", "project": "p", "type": "note", "content": "hello"}], "edges": [], "k": 3}
+    html = graph_cli._render_html(graph)
+    assert "<title>Mnemo Graph</title>" in html
+    assert json.dumps(graph, ensure_ascii=False) in html
+
+
+def test_main_writes_html_file_and_opens_browser(tmp_path, monkeypatch):
+    client = store.get_client()
+    collection = os.environ["MNEMO_COLLECTION"]
+    store.ensure_collection(client, collection)
+    store.add_memory(client, embeddings.embed_text("graph cli test alpha"), "graph cli test alpha", "mnemo-test", "note", collection=collection)
+    store.add_memory(client, embeddings.embed_text("graph cli test beta"), "graph cli test beta", "mnemo-test", "note", collection=collection)
+
+    opened = []
+    monkeypatch.setattr(graph_cli.webbrowser, "open", lambda uri: opened.append(uri))
+    monkeypatch.setattr(graph_cli.config, "COLLECTION_NAME", collection)
+
+    out_path = tmp_path / "graph.html"
+    graph_cli.main(["--project", "mnemo-test", "--out", str(out_path)])
+
+    assert out_path.exists()
+    content = out_path.read_text()
+    assert "graph cli test alpha" in content
+    assert len(opened) == 1
+
+
+def test_main_handles_fewer_than_two_records(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(graph_cli.webbrowser, "open", lambda uri: (_ for _ in ()).throw(AssertionError("should not open browser")))
+    out_path = tmp_path / "graph.html"
+    graph_cli.main(["--project", "a-project-with-zero-memories-for-graph-test", "--out", str(out_path)])
+    assert not out_path.exists()
+    assert "at least 2" in capsys.readouterr().out

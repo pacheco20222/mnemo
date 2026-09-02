@@ -1,0 +1,43 @@
+import argparse
+
+from mnemo import config, embeddings, store
+
+
+def _chunk_text(text: str, max_chars: int = 6000) -> list[str]:
+    paragraphs = [p for p in text.split("\n\n") if p.strip()]
+    chunks = []
+    current = ""
+    for paragraph in paragraphs:
+        candidate = f"{current}\n\n{paragraph}" if current else paragraph
+        if len(candidate) > max_chars and current:
+            chunks.append(current)
+            current = paragraph
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def main(argv: list[str]) -> None:
+    parser = argparse.ArgumentParser(prog="mnemo import")
+    parser.add_argument("file")
+    parser.add_argument("--project", required=True)
+    parser.add_argument("--type", required=True, dest="type_")
+    args = parser.parse_args(argv)
+
+    config.validate_type(args.type_)
+
+    with open(args.file, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    chunks = _chunk_text(text)
+    client = store.get_client()
+    store.ensure_collection(client)
+
+    for i, chunk in enumerate(chunks, start=1):
+        vector = embeddings.embed_text(chunk)
+        source = f"{args.file} (chunk {i}/{len(chunks)})" if len(chunks) > 1 else args.file
+        store.add_memory(client, vector, chunk, args.project, args.type_, source=source)
+
+    print(f"Imported {len(chunks)} memories from {args.file} into project '{args.project}'")
