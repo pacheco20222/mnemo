@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mnemo",
+  "description": "Self-hosted, project-scoped memory MCP server for Claude Code and Codex. No cloud services, no paid APIs.",
+  "owner": {
+    "name": "Jose Pacheco",
+    "url": "https://github.com/pacheco20222"
+  },
+  "plugins": [
+    {
+      "name": "mnemo",
+      "description": "Adds memory_add/memory_search, checkpoint/resume, and named documents to Claude Code and Codex, backed by your own local Qdrant + Ollama.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

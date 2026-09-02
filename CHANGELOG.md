@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — 2026-09-02
+
+### Added
+- Claude Code plugin packaging (`.claude-plugin/plugin.json` + `marketplace.json`) — installable via `/plugin marketplace add pacheco20222/mnemo` then `/plugin install mnemo`, no cloning required for the Claude Code side.
+- `/mnemo-setup <project>` command — starts Qdrant if it isn't running, checks for the `nomic-embed-text` model, and writes/merges this repo's `.mcp.json` and (optionally) the checkpoint/resume `SessionStart` hook. Replaces copy-pasting `mnemo setup`'s terminal output by hand.
+- `mnemo setup` now also prints the `SessionStart` hook block (previously only documented manually in INSTALL.md, not printed).
+
 ## 1.0.0 — 2026-09-02
 
 First packaged release. Everything below was built and proven across

@@ -1,0 +1,14 @@
+{
+  "name": "mnemo",
+  "version": "1.1.0",
+  "description": "Self-hosted, project-scoped memory MCP server for Claude Code and Codex. No cloud services, no paid APIs.",
+  "author": {
+    "name": "Jose Pacheco",
+    "email": "jrp2022@gmail.com",
+    "url": "https://github.com/pacheco20222"
+  },
+  "homepage": "https://github.com/pacheco20222/mnemo",
+  "repository": "https://github.com/pacheco20222/mnemo",
+  "license": "MIT",
+  "keywords": ["memory", "mcp", "qdrant", "ollama", "context"]
+}

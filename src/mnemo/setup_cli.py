@@ -22,10 +22,28 @@ def main(argv: list[str]) -> None:
   }}
 }}"""
 
+    hook_json = f"""{{
+  "hooks": {{
+    "SessionStart": [
+      {{
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {{
+            "type": "command",
+            "command": "MNEMO_PROJECT={project} uv run --directory {install_dir} mnemo-recall"
+          }}
+        ]
+      }}
+    ]
+  }}
+}}"""
+
     codex_cmd = f"codex mcp add mnemo --env MNEMO_PROJECT={project} -- uv run --directory {install_dir} mnemo"
 
     print("Add this to your repo's .mcp.json (Claude Code):\n")
     print(mcp_json)
+    print("\nOptional — add this to your repo's .claude/settings.json to auto-load checkpoints and documents every session:\n")
+    print(hook_json)
     print("\nFor Codex, run:\n")
     print(codex_cmd)
     if args.project is None:

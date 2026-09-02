@@ -24,7 +24,28 @@ another repo's memory by accident.
 - [Ollama](https://ollama.com/), with `nomic-embed-text` pulled
 - [uv](https://docs.astral.sh/uv/)
 
-## Quick start
+## Quick start (Claude Code plugin)
+
+Prerequisites: [Docker](https://www.docker.com/)/[OrbStack](https://orbstack.dev/)
+and [Ollama](https://ollama.com/) installed (running is enough — `/mnemo-setup`
+starts Qdrant and checks for the embedding model for you).
+
+Inside Claude Code, in whichever repo you want memory in:
+
+```
+/plugin marketplace add pacheco20222/mnemo
+/plugin install mnemo
+/mnemo-setup my-first-project
+```
+
+That starts Qdrant if it isn't already running, checks for the
+`nomic-embed-text` model, and writes `.mcp.json` (and, if you want it,
+the checkpoint/resume hook) for this repo. Restart the session and
+`memory_add`/`memory_search` are available. Run `/mnemo-setup` again
+with a different project name in any other repo — no cloning, no
+hand-edited config.
+
+## Quick start (manual / Codex)
 
 ```bash
 git clone git@github.com:pacheco20222/mnemo.git

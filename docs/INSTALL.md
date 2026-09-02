@@ -9,7 +9,39 @@
    ```
 3. **uv** installed ([docs.astral.sh/uv](https://docs.astral.sh/uv/)).
 
-## 1. Clone and start the services
+## Option A: Plugin install (recommended for Claude Code)
+
+Inside Claude Code, in whichever repo you want Mnemo available in:
+
+```
+/plugin marketplace add pacheco20222/mnemo
+/plugin install mnemo
+/mnemo-setup my-project-name
+```
+
+`/mnemo-setup` starts Qdrant (via the plugin's own bundled
+`docker-compose.yml`) if it isn't already running, checks that Ollama
+has `nomic-embed-text` pulled (tells you to pull it yourself if not —
+it's a real download, not something to do silently), then writes this
+repo's `.mcp.json` for you — merging into an existing one if you
+already have other MCP servers configured, never overwriting it. It'll
+also ask if you want the checkpoint/resume `SessionStart` hook (see
+below) and write that too if you say yes.
+
+Run `/mnemo-setup <name>` again in any other repo to add Mnemo there —
+each repo gets its own project id, no cloning or hand-edited config
+needed. This covers the Claude Code side only; Codex still needs the
+manual step in [§4](#4-codex) below, since Codex has no plugin/marketplace
+concept of its own.
+
+The rest of this doc (Option B) is the manual path — read it if you're
+not using Claude Code, want to see exactly what the plugin command
+does under the hood, or ran into something `/mnemo-setup` didn't
+handle.
+
+## Option B: Manual install
+
+### 1. Clone and start the services
 
 ```bash
 git clone git@github.com:pacheco20222/mnemo.git
@@ -24,19 +56,19 @@ needs. Verify it's up:
 curl -s http://localhost:6333/collections
 ```
 
-## 2. Get your install path
+### 2. Get your install path
 
 ```bash
 uv run mnemo setup
 ```
 
-This prints a ready-to-paste `.mcp.json` block and the equivalent
-`codex mcp add` command, with your actual clone path already filled
-in — you don't need to hand-edit any paths yourself. Re-run it with
-`--project NAME` to have the project id filled in too, instead of a
-placeholder.
+This prints a ready-to-paste `.mcp.json` block, an optional
+`.claude/settings.json` hook block, and the equivalent `codex mcp add`
+command, with your actual clone path already filled in — you don't
+need to hand-edit any paths yourself. Re-run it with `--project NAME`
+to have the project id filled in too, instead of a placeholder.
 
-## 3. Claude Code
+### 3. Claude Code
 
 Claude Code scopes MCP servers **per repository**, automatically —
 whichever repo's `.mcp.json` is present is what's active for that
@@ -64,7 +96,7 @@ project's memories from ever showing up in another's. Open (or
 restart) a Claude Code session in that repo and `memory_add`/
 `memory_search` will be available.
 
-### Optional: auto-loading checkpoints and documents
+#### Optional: auto-loading checkpoints and documents
 
 Mnemo can automatically surface your latest checkpoint and project
 overview at the start of every session, via a Claude Code hook. Add a
@@ -92,7 +124,7 @@ If a `.claude/settings.json` already exists in that repo, add the
 `"hooks"` key alongside whatever's already there rather than replacing
 the file.
 
-## 4. Codex
+### 4. Codex
 
 This is genuinely different from Claude Code, not just a syntax
 change: **Codex's MCP configuration is global** (`~/.codex/config.toml`),
@@ -125,7 +157,7 @@ with Codex:
 Neither is automatic the way Claude Code's per-directory config is —
 pick whichever tradeoff fits how you actually use Codex.
 
-## 5. Verify it worked
+### 5. Verify it worked
 
 In a Claude Code or Codex session in your configured repo:
 
