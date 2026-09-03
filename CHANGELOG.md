@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0 — 2026-09-03
+
+### Changed
+- **Breaking:** embeddings now run locally via `fastembed` (`nomic-embed-text-v1.5`, ONNX Runtime, CPU-only) instead of Ollama. No GPU, no background service, no separate app to install — `fastembed` installs like any other Python dependency. Existing memories remain valid Qdrant points but are no longer in the same embedding space as anything newly written; no automatic migration is performed.
+- `mnemo import`'s chunk size widened from ~1500 to ~6000 tokens (6000→24000 chars), taking advantage of the new backend's 8192-token context window (vs. Ollama's configured 2048).
+
+### Removed
+- Ollama and `httpx` as dependencies.
+
 ## 1.2.0 — 2026-09-02
 
 ### Added

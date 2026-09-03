@@ -3,11 +3,12 @@
 ## Prerequisites
 
 1. **Docker or OrbStack** running locally.
-2. **Ollama** installed, with the embedding model pulled:
-   ```bash
-   ollama pull nomic-embed-text
-   ```
-3. **uv** installed ([docs.astral.sh/uv](https://docs.astral.sh/uv/)).
+2. **uv** installed ([docs.astral.sh/uv](https://docs.astral.sh/uv/)).
+
+No GPU and no separate embedding service needed — `fastembed` runs
+locally on CPU and installs the same way `uv sync` installs every
+other Python dependency here. The model itself (~500MB) downloads
+automatically, once, the first time you save a memory.
 
 ## Option A: Plugin install (recommended for Claude Code)
 
@@ -20,12 +21,11 @@ Inside Claude Code, in whichever repo you want Mnemo available in:
 ```
 
 `/mnemo-register` starts Qdrant (via the plugin's own bundled
-`docker-compose.yml`) if it isn't already running, checks that Ollama
-has `nomic-embed-text` pulled (tells you to pull it yourself if not —
-it's a real download, not something to do silently), then registers
+`docker-compose.yml`) if it isn't already running, then registers
 this folder under that project name in `~/.mnemo/projects.json` — a
 file outside any repo, not `.mcp.json`. Nothing gets written into this
-repo at all.
+repo at all. The first `memory_add` you make afterward downloads the
+embedding model automatically (~500MB, one-time).
 
 The MCP server and the checkpoint/resume `SessionStart` hook are both
 bundled with the plugin itself, so installing it once (above) already

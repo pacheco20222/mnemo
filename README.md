@@ -21,14 +21,15 @@ another repo's memory by accident.
 
 - macOS or Linux
 - [Docker](https://www.docker.com/) or [OrbStack](https://orbstack.dev/) (Qdrant runs in a container)
-- [Ollama](https://ollama.com/), with `nomic-embed-text` pulled
 - [uv](https://docs.astral.sh/uv/)
+
+No GPU, no separate embedding service — `fastembed` runs locally on CPU
+and installs like any other Python dependency.
 
 ## Quick start (Claude Code plugin)
 
-Prerequisites: [Docker](https://www.docker.com/)/[OrbStack](https://orbstack.dev/)
-and [Ollama](https://ollama.com/) installed (running is enough — `/mnemo-register`
-starts Qdrant and checks for the embedding model for you).
+Prerequisite: [Docker](https://www.docker.com/)/[OrbStack](https://orbstack.dev/)
+installed (running is enough — `/mnemo-register` starts Qdrant for you).
 
 Inside Claude Code, in whichever repo you want memory in:
 
@@ -39,12 +40,13 @@ Inside Claude Code, in whichever repo you want memory in:
 ```
 
 That's it — nothing gets written into this repo. `/mnemo-register`
-starts Qdrant if it isn't already running, checks for the
-`nomic-embed-text` model, then registers this folder under that
-project name in a small file outside any repo (`~/.mnemo/projects.json`).
-`memory_add`/`memory_search` work immediately, same session, no
-restart. Run `/mnemo-register` again with a different project name in
-any other repo — same plugin install, no per-repo config at all.
+starts Qdrant if it isn't already running, then registers this folder
+under that project name in a small file outside any repo
+(`~/.mnemo/projects.json`). The first `memory_add` you make downloads
+the embedding model automatically (~500MB, one-time). `memory_add`/
+`memory_search` work immediately, same session, no restart. Run
+`/mnemo-register` again with a different project name in any other
+repo — same plugin install, no per-repo config at all.
 
 ## Quick start (manual / Codex)
 
@@ -52,7 +54,6 @@ any other repo — same plugin install, no per-repo config at all.
 git clone git@github.com:pacheco20222/mnemo.git
 cd mnemo
 docker compose up -d
-ollama pull nomic-embed-text
 uv run mnemo setup --project my-first-project
 ```
 
@@ -63,8 +64,9 @@ Claude Code and Codex scope projects.
 
 ## How it works
 
-Qdrant (vector store) + Ollama (`nomic-embed-text`, local embeddings) +
-FastMCP (the MCP server itself, stdio transport). See
+Qdrant (vector store) + fastembed (`nomic-embed-text-v1.5`, local
+CPU embeddings, no separate service) + FastMCP (the MCP server itself,
+stdio transport). See
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design and
 every tool's exact signature.
 

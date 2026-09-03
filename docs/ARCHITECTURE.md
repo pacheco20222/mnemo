@@ -5,7 +5,7 @@
 | Layer | Choice | Why |
 |---|---|---|
 | Vector store | [Qdrant](https://qdrant.tech/) (Docker) | Single container, stores vectors + metadata together, free |
-| Embeddings | `nomic-embed-text` via [Ollama](https://ollama.com/) | Local, free, no external API call ever |
+| Embeddings | `nomic-embed-text-v1.5` via [fastembed](https://github.com/qdrant/fastembed) | Local, free, CPU-only, no external API call, no background service |
 | MCP server | [FastMCP](https://gofastmcp.com/) (Python), stdio transport | No network exposure, low boilerplate |
 
 Qdrant is the only always-on process. The MCP server itself is spawned
@@ -19,7 +19,7 @@ Every memory is one Qdrant point:
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID | Random for regular memories; deterministic (`uuid5(project:slug)`) for named documents |
-| `vector` | float[768] | `nomic-embed-text` embedding of `content` |
+| `vector` | float[768] | `nomic-embed-text-v1.5` embedding of `content` |
 | `project` | string | Required on every point — the hard isolation boundary |
 | `type` | string | `decision` \| `architecture` \| `bug` \| `todo` \| `note` \| `checkpoint` |
 | `content` | string | The memory text |
