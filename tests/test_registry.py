@@ -50,3 +50,9 @@ def test_lookup_uses_resolved_absolute_path(isolated_registry, tmp_path):
     real_dir.mkdir()
     registry.register(real_dir, "resolved-project")
     assert registry.lookup(Path(str(real_dir) + "/.")) == "resolved-project"
+
+
+def test_load_raises_registry_error_on_corrupt_json(isolated_registry):
+    isolated_registry.write_text("{not valid json")
+    with pytest.raises(registry.RegistryError):
+        registry.lookup(Path("/some/folder"))

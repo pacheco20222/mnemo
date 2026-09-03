@@ -15,7 +15,14 @@ def get_project() -> str:
     project = os.environ.get("MNEMO_PROJECT", "").strip()
     if project:
         return project
-    registered = registry.lookup(Path.cwd())
+    try:
+        registered = registry.lookup(Path.cwd())
+    except registry.RegistryError as e:
+        raise RuntimeError(
+            f"MNEMO_PROJECT is not set, and the folder registry couldn't "
+            f"be read: {e}. Fix or delete the file and re-register this "
+            f"folder."
+        ) from e
     if registered:
         return registered
     raise RuntimeError(

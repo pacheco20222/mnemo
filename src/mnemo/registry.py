@@ -10,10 +10,17 @@ def registry_path() -> Path:
     return Path.home() / ".mnemo" / "projects.json"
 
 
+class RegistryError(Exception):
+    """Raised when the registry file exists but can't be parsed as JSON."""
+
+
 def _load(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text())
+    try:
+        return json.loads(path.read_text())
+    except json.JSONDecodeError as e:
+        raise RegistryError(f"{path} exists but isn't valid JSON: {e}") from e
 
 
 def register(cwd: Path, project: str) -> None:

@@ -53,3 +53,12 @@ def test_get_project_raises_when_neither_env_nor_registry(monkeypatch, tmp_path)
     monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
     with pytest.raises(RuntimeError):
         config.get_project()
+
+
+def test_get_project_raises_runtime_error_on_corrupt_registry(monkeypatch, tmp_path):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    registry_path = tmp_path / "projects.json"
+    registry_path.write_text("{not valid json")
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(registry_path))
+    with pytest.raises(RuntimeError):
+        config.get_project()

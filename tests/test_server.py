@@ -137,3 +137,9 @@ def test_memory_register_project_writes_registry(tmp_path, monkeypatch):
 
 def test_server_instructions_cover_registration_workflow():
     assert "memory_register_project" in server.mcp.instructions
+
+
+def test_memory_register_project_rejects_empty_name(tmp_path, monkeypatch):
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    with pytest.raises(ValueError):
+        server.memory_register_project("   ")

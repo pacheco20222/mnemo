@@ -78,6 +78,9 @@ def memory_get_document(slug: str) -> dict | None:
 
 @mcp.tool
 def memory_register_project(name: str) -> dict:
+    name = name.strip()
+    if not name:
+        raise ValueError("project name must not be empty")
     cwd = Path.cwd()
     registry.register(cwd, name)
     return {"registered": str(cwd.resolve()), "project": name}
