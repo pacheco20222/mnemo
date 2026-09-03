@@ -30,9 +30,12 @@ Every memory is one Qdrant point:
 
 ## Project isolation
 
-Every tool except `memory_search_global` is implicitly scoped to
-`MNEMO_PROJECT` (read once, at server startup, from the environment —
-fail-closed if unset). No tool takes a `project` parameter, so there's
+Every tool except `memory_search_global` is implicitly scoped to a
+project, resolved fresh on every call: `MNEMO_PROJECT` from the
+environment if set, else a lookup of the current folder in a small
+local registry (`~/.mnemo/projects.json`, written by
+`memory_register_project` or `mnemo register --project X`) — fail-closed
+if neither resolves. No tool takes a `project` parameter, so there's
 no way to accidentally read or write another project's memories from
 inside a session. `memory_search_global` is the one deliberate,
 explicitly-named exception — isolation by tool choice, not a per-call
@@ -45,6 +48,7 @@ permission check.
 - **`memory_search_global(query: str, type: str | None = None, k: int = 5) -> list[dict]`** — the same search, across every project. Use only for an explicitly cross-project ask.
 - **`memory_set_document(slug: str, content: str, type: str) -> dict`** — replace-in-place, keyed by `(project, slug)`. Use for content that should supersede its previous version — a project overview, a running dev log — not accumulate.
 - **`memory_get_document(slug: str) -> dict | None`** — exact lookup by slug, no embedding call involved.
+- **`memory_register_project(name: str) -> dict`** — registers the current folder (the server's own working directory) under `name` in the local registry, so future calls in that folder resolve the project automatically. Needs no project to already be set — this is how a brand-new, unregistered folder bootstraps.
 
 ## Checkpoint / resume
 
@@ -82,11 +86,18 @@ self-contained HTML file (dark, force-directed, Canvas-rendered) that
 opens in your browser. Not decorative — the connections are the
 model's own actual similarity judgments.
 
-## `mnemo setup`
+## `mnemo setup` / `mnemo register`
 
-Resolves its own install location at runtime (`Path(__file__).resolve().parents[2]`)
-and prints ready-to-paste Claude Code and Codex configuration —
-nothing to hand-edit, no assumed path.
+`mnemo setup` resolves its own install location at runtime
+(`Path(__file__).resolve().parents[2]`) and prints ready-to-paste
+Claude Code and Codex configuration — still the right tool for a
+manual, non-plugin install, or for generating the Codex command by
+hand. `mnemo register --project X` is the plugin-install path instead:
+it writes `Path.cwd()` (the folder it's run from) against that project
+name into `~/.mnemo/projects.json`, nothing into the repo itself. Both
+are thin CLI wrappers with no logic of their own beyond argument
+parsing — `mnemo setup` around string formatting, `mnemo register`
+around `registry.register`.
 
 ## Backups
 

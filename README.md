@@ -27,7 +27,7 @@ another repo's memory by accident.
 ## Quick start (Claude Code plugin)
 
 Prerequisites: [Docker](https://www.docker.com/)/[OrbStack](https://orbstack.dev/)
-and [Ollama](https://ollama.com/) installed (running is enough — `/mnemo-setup`
+and [Ollama](https://ollama.com/) installed (running is enough — `/mnemo-register`
 starts Qdrant and checks for the embedding model for you).
 
 Inside Claude Code, in whichever repo you want memory in:
@@ -35,15 +35,16 @@ Inside Claude Code, in whichever repo you want memory in:
 ```
 /plugin marketplace add pacheco20222/mnemo
 /plugin install mnemo
-/mnemo-setup my-first-project
+/mnemo-register my-first-project
 ```
 
-That starts Qdrant if it isn't already running, checks for the
-`nomic-embed-text` model, and writes `.mcp.json` (and, if you want it,
-the checkpoint/resume hook) for this repo. Restart the session and
-`memory_add`/`memory_search` are available. Run `/mnemo-setup` again
-with a different project name in any other repo — no cloning, no
-hand-edited config.
+That's it — nothing gets written into this repo. `/mnemo-register`
+starts Qdrant if it isn't already running, checks for the
+`nomic-embed-text` model, then registers this folder under that
+project name in a small file outside any repo (`~/.mnemo/projects.json`).
+`memory_add`/`memory_search` work immediately, same session, no
+restart. Run `/mnemo-register` again with a different project name in
+any other repo — same plugin install, no per-repo config at all.
 
 ## Quick start (manual / Codex)
 

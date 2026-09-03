@@ -16,27 +16,32 @@ Inside Claude Code, in whichever repo you want Mnemo available in:
 ```
 /plugin marketplace add pacheco20222/mnemo
 /plugin install mnemo
-/mnemo-setup my-project-name
+/mnemo-register my-project-name
 ```
 
-`/mnemo-setup` starts Qdrant (via the plugin's own bundled
+`/mnemo-register` starts Qdrant (via the plugin's own bundled
 `docker-compose.yml`) if it isn't already running, checks that Ollama
 has `nomic-embed-text` pulled (tells you to pull it yourself if not —
-it's a real download, not something to do silently), then writes this
-repo's `.mcp.json` for you — merging into an existing one if you
-already have other MCP servers configured, never overwriting it. It'll
-also ask if you want the checkpoint/resume `SessionStart` hook (see
-below) and write that too if you say yes.
+it's a real download, not something to do silently), then registers
+this folder under that project name in `~/.mnemo/projects.json` — a
+file outside any repo, not `.mcp.json`. Nothing gets written into this
+repo at all.
 
-Run `/mnemo-setup <name>` again in any other repo to add Mnemo there —
-each repo gets its own project id, no cloning or hand-edited config
-needed. This covers the Claude Code side only; Codex still needs the
-manual step in [§4](#4-codex) below, since Codex has no plugin/marketplace
-concept of its own.
+The MCP server and the checkpoint/resume `SessionStart` hook are both
+bundled with the plugin itself, so installing it once (above) already
+made both available everywhere — registering a folder just tells
+Mnemo which project that folder is. `memory_add`/`memory_search` work
+immediately, same session, no restart.
+
+Run `/mnemo-register <name>` again in any other repo to add Mnemo
+there — same plugin install, no cloning or hand-edited config, ever.
+This covers the Claude Code side only; Codex still needs the manual
+step in [§4](#4-codex) below, since Codex has no plugin/marketplace or
+registry concept of its own.
 
 The rest of this doc (Option B) is the manual path — read it if you're
 not using Claude Code, want to see exactly what the plugin command
-does under the hood, or ran into something `/mnemo-setup` didn't
+does under the hood, or ran into something `/mnemo-register` didn't
 handle.
 
 ## Option B: Manual install

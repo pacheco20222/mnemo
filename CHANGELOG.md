@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 — 2026-09-02
+
+### Added
+- Local folder-to-project registry (`~/.mnemo/projects.json`) and `memory_register_project` tool / `mnemo register --project X` CLI — lets a repo register itself without writing any file into that repo.
+- `.mcp.json` and `hooks/hooks.json` now bundled directly in the plugin — installing it once makes the MCP server and the checkpoint/resume hook available in every session, everywhere. `MNEMO_PROJECT` no longer needs to be baked into either.
+- `/mnemo-register <project>` replaces `/mnemo-setup` — same Qdrant/Ollama checks, but registers the folder instead of writing `.mcp.json` into it.
+
+### Fixed
+- `server.py` no longer resolves the project once at import time — it's now resolved per tool call, so the server always starts even in a brand-new, unregistered folder (previously it would crash before a registration tool could ever run there).
+
 ## 1.1.0 — 2026-09-02
 
 ### Added
