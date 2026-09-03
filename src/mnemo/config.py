@@ -4,8 +4,7 @@ from pathlib import Path
 from mnemo import registry
 
 QDRANT_URL = os.environ.get("MNEMO_QDRANT_URL", "http://localhost:6333")
-OLLAMA_URL = os.environ.get("MNEMO_OLLAMA_URL", "http://localhost:11434")
-EMBED_MODEL = "nomic-embed-text"
+EMBED_MODEL = "nomic-ai/nomic-embed-text-v1.5"
 VECTOR_SIZE = 768
 COLLECTION_NAME = os.environ.get("MNEMO_COLLECTION", "memories")
 VALID_TYPES = frozenset({"decision", "architecture", "bug", "todo", "note", "checkpoint"})

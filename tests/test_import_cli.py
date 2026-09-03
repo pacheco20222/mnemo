@@ -46,3 +46,10 @@ def test_import_main_rejects_invalid_type(tmp_path):
 
     with pytest.raises(ValueError):
         import_cli.main([str(file_path), "--project", "mnemo-test", "--type", "nonsense"])
+
+
+def test_chunk_text_default_matches_new_token_budget():
+    paragraph = "x" * 100
+    text = "\n\n".join([paragraph] * 250)  # 25,000+ chars of content
+    chunks = import_cli._chunk_text(text)
+    assert len(chunks) <= 2

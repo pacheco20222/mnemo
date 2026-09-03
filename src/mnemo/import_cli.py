@@ -3,7 +3,10 @@ import argparse
 from mnemo import config, embeddings, store
 
 
-def _chunk_text(text: str, max_chars: int = 6000) -> list[str]:
+def _chunk_text(text: str, max_chars: int = 24000) -> list[str]:
+    # ~6000 tokens at ~4 chars/token, same proportional safety margin
+    # the original 6000-char/2048-token design used, scaled to
+    # fastembed's 8192-token window.
     paragraphs = [p for p in text.split("\n\n") if p.strip()]
     chunks = []
     current = ""
