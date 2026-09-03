@@ -1,6 +1,8 @@
+from pathlib import Path
+
 from fastmcp import FastMCP
 
-from mnemo import config, embeddings, store
+from mnemo import config, embeddings, registry, store
 
 mcp = FastMCP(
     "mnemo",
@@ -24,27 +26,33 @@ mcp = FastMCP(
         "one. Only call it when the user explicitly asks for something "
         "cross-project (e.g. \"what have I done across all my "
         "projects\") — never as a fallback or default when the normal "
-        "memory_search, scoped to this project, would do."
+        "memory_search, scoped to this project, would do. If any memory "
+        "tool call fails because no project is set for this folder, or "
+        "the user explicitly asks to set up Mnemo here, call "
+        "memory_register_project(name) with a short project id — it "
+        "registers the current folder so every future call in it "
+        "resolves automatically, immediately, no restart needed."
     ),
 )
 
-PROJECT = config.get_project()
 _client = store.get_client()
 store.ensure_collection(_client)
 
 
 @mcp.tool
 def memory_add(content: str, type: str) -> dict:
+    project = config.get_project()
     config.validate_type(type)
     vector = embeddings.embed_text(content)
-    memory_id = store.add_memory(_client, vector, content, PROJECT, type)
-    return {"id": memory_id, "project": PROJECT, "type": type, "content": content}
+    memory_id = store.add_memory(_client, vector, content, project, type)
+    return {"id": memory_id, "project": project, "type": type, "content": content}
 
 
 @mcp.tool
 def memory_search(query: str, type: str | None = None, k: int = 5) -> list[dict]:
+    project = config.get_project()
     vector = embeddings.embed_text(query)
-    return store.search_memory(_client, vector, PROJECT, type_=type, k=k)
+    return store.search_memory(_client, vector, project, type_=type, k=k)
 
 
 @mcp.tool
@@ -55,15 +63,24 @@ def memory_search_global(query: str, type: str | None = None, k: int = 5) -> lis
 
 @mcp.tool
 def memory_set_document(slug: str, content: str, type: str) -> dict:
+    project = config.get_project()
     config.validate_type(type)
     vector = embeddings.embed_text(content)
-    doc_id = store.set_document(_client, vector, content, PROJECT, slug, type)
-    return {"id": doc_id, "project": PROJECT, "slug": slug, "type": type, "content": content}
+    doc_id = store.set_document(_client, vector, content, project, slug, type)
+    return {"id": doc_id, "project": project, "slug": slug, "type": type, "content": content}
 
 
 @mcp.tool
 def memory_get_document(slug: str) -> dict | None:
-    return store.get_document(_client, PROJECT, slug)
+    project = config.get_project()
+    return store.get_document(_client, project, slug)
+
+
+@mcp.tool
+def memory_register_project(name: str) -> dict:
+    cwd = Path.cwd()
+    registry.register(cwd, name)
+    return {"registered": str(cwd.resolve()), "project": name}
 
 
 def main() -> None:

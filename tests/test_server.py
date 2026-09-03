@@ -1,15 +1,16 @@
 import os
+from pathlib import Path
 
 import anyio
 import pytest
 from fastmcp import Client
 
-from mnemo import embeddings, server, store
+from mnemo import config, embeddings, registry, server, store
 
 
 def test_memory_add_and_search_round_trip():
     added = server.memory_add("prefer uv over pip for this project", "decision")
-    assert added["project"] == server.PROJECT
+    assert added["project"] == config.get_project()
     assert added["type"] == "decision"
     assert added["id"]
 
@@ -34,7 +35,7 @@ def test_mcp_protocol_round_trip():
             add_result = await client.call_tool(
                 "memory_add", {"content": "mcp protocol smoke test", "type": "note"}
             )
-            assert add_result.data["project"] == server.PROJECT
+            assert add_result.data["project"] == config.get_project()
 
             search_result = await client.call_tool(
                 "memory_search", {"query": "mcp protocol smoke test"}
@@ -125,3 +126,14 @@ def test_mcp_protocol_global_search_round_trip():
 def test_server_instructions_cover_global_search_scope():
     assert "memory_search_global" in server.mcp.instructions
     assert "every project" in server.mcp.instructions
+
+
+def test_memory_register_project_writes_registry(tmp_path, monkeypatch):
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    result = server.memory_register_project("registered-via-tool")
+    assert result["project"] == "registered-via-tool"
+    assert registry.lookup(Path.cwd()) == "registered-via-tool"
+
+
+def test_server_instructions_cover_registration_workflow():
+    assert "memory_register_project" in server.mcp.instructions

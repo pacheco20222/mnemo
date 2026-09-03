@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from mnemo import config, recall, store
+from mnemo import config, recall, registry, store
 
 
 def test_latest_checkpoint_returns_none_when_nothing_saved():
@@ -51,3 +52,56 @@ def test_overview_document_fails_open_on_connection_error(monkeypatch):
     monkeypatch.setattr(config, "QDRANT_URL", "http://localhost:1")
     result = recall.overview_document("mnemo-test")
     assert result is None
+
+
+def test_main_falls_back_to_registry(monkeypatch, tmp_path, capsys):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    registry.register(Path.cwd(), "mnemo-test")
+    client = store.get_client()
+    collection = os.environ["MNEMO_COLLECTION"]
+    store.ensure_collection(client, collection)
+    store.add_memory(
+        client, [0.1] * 768, "registry fallback checkpoint content",
+        "mnemo-test", "checkpoint", collection=collection,
+    )
+
+    recall.main()
+
+    out = capsys.readouterr().out
+    assert "registry fallback checkpoint content" in out
+
+
+def test_main_does_nothing_when_neither_env_nor_registry(monkeypatch, tmp_path, capsys):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+
+    recall.main()
+
+    out = capsys.readouterr().out
+    assert out == ""
+
+
+def test_main_never_constructs_qdrant_client_when_unresolved(monkeypatch, tmp_path):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("store.get_client() should not be called when project is unresolved")
+
+    monkeypatch.setattr(store, "get_client", _boom)
+
+    recall.main()  # must not raise
+
+
+def test_main_fails_open_on_corrupt_registry(monkeypatch, tmp_path, capsys):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    registry_path = tmp_path / "projects.json"
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(registry_path))
+    # Write corrupt JSON
+    registry_path.write_text("{invalid json content")
+
+    recall.main()
+
+    out = capsys.readouterr().out
+    assert out == ""

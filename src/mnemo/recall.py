@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from mnemo import config, store
+from mnemo import config, registry, store
 
 
 def latest_checkpoint(project: str) -> str | None:
@@ -31,6 +32,11 @@ def overview_document(project: str) -> str | None:
 
 def main() -> None:
     project = os.environ.get("MNEMO_PROJECT", "").strip()
+    if not project:
+        try:
+            project = registry.lookup(Path.cwd()) or ""
+        except Exception:
+            project = ""
     if not project:
         return
     overview = overview_document(project)

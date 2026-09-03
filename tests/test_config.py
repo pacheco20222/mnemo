@@ -1,6 +1,8 @@
+from pathlib import Path
+
 import pytest
 
-from mnemo import config
+from mnemo import config, registry
 
 
 def test_get_project_reads_env(monkeypatch):
@@ -8,14 +10,16 @@ def test_get_project_reads_env(monkeypatch):
     assert config.get_project() == "villenca"
 
 
-def test_get_project_raises_when_unset(monkeypatch):
+def test_get_project_raises_when_unset(monkeypatch, tmp_path):
     monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
     with pytest.raises(RuntimeError):
         config.get_project()
 
 
-def test_get_project_raises_when_blank(monkeypatch):
+def test_get_project_raises_when_blank(monkeypatch, tmp_path):
     monkeypatch.setenv("MNEMO_PROJECT", "   ")
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
     with pytest.raises(RuntimeError):
         config.get_project()
 
@@ -28,3 +32,24 @@ def test_validate_type_accepts_known_types():
 def test_validate_type_rejects_unknown():
     with pytest.raises(ValueError):
         config.validate_type("nonsense")
+
+
+def test_get_project_falls_back_to_registry(monkeypatch, tmp_path):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    registry.register(Path.cwd(), "registry-project")
+    assert config.get_project() == "registry-project"
+
+
+def test_get_project_env_wins_over_registry(monkeypatch, tmp_path):
+    monkeypatch.setenv("MNEMO_PROJECT", "env-project")
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    registry.register(Path.cwd(), "registry-project")
+    assert config.get_project() == "env-project"
+
+
+def test_get_project_raises_when_neither_env_nor_registry(monkeypatch, tmp_path):
+    monkeypatch.delenv("MNEMO_PROJECT", raising=False)
+    monkeypatch.setenv("MNEMO_REGISTRY_PATH", str(tmp_path / "projects.json"))
+    with pytest.raises(RuntimeError):
+        config.get_project()
