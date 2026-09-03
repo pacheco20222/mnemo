@@ -20,6 +20,12 @@ def main() -> None:
         setup_main(sys.argv[2:])
         return
 
+    if len(sys.argv) > 1 and sys.argv[1] == "register":
+        from mnemo.register_cli import main as register_main
+
+        register_main(sys.argv[2:])
+        return
+
     from mnemo.server import main as server_main
 
     server_main()
