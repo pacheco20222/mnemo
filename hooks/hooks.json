@@ -1,0 +1,17 @@
+{
+  "description": "Auto-loads the latest checkpoint and project overview at session start, for whichever folder is registered",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --project ${CLAUDE_PLUGIN_ROOT} mnemo-recall",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "mnemo": {
+      "command": "uv",
+      "args": ["--project", "${CLAUDE_PLUGIN_ROOT}", "run", "mnemo"]
+    }
+  }
+}
