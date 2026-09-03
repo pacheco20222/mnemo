@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "mnemo",
-      "description": "Adds memory_add/memory_search, checkpoint/resume, and named documents to Claude Code and Codex, backed by your own local Qdrant + Ollama.",
+      "description": "Adds memory_add/memory_search, checkpoint/resume, and named documents to Claude Code and Codex, backed by your own local Qdrant + fastembed.",
       "source": "./",
       "category": "productivity"
     }
