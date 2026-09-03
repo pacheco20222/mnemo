@@ -70,6 +70,15 @@ stdio transport). See
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design and
 every tool's exact signature.
 
+## Upgrading from 1.x
+
+2.0.0 changes the embedding backend (Ollama → fastembed) — see
+[CHANGELOG.md](CHANGELOG.md). Old and new embeddings share the same 768
+dimensions but are **not** the same vector space, and Qdrant can't detect
+the difference. If you're upgrading an existing install, either start a
+fresh `memories` collection, or expect old memories to rank essentially
+randomly against new ones in semantic search until you re-add them.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

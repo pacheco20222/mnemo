@@ -75,12 +75,17 @@ paragraph breaks, grouping consecutive paragraphs up to ~24000
 characters (~6000 tokens) per chunk — comfortably under
 `nomic-embed-text-v1.5`'s 8192-token context window. Multi-chunk files
 are tagged via `source`: `"<file> (chunk 2/5)"`. **Known limitation:**
-unlike the previous Ollama backend, which raised a clear error on
-over-length input, `fastembed` silently truncates text beyond the
-context window instead of erroring — this chunking stays well under
-that limit specifically to avoid ever relying on that behavior, but a
-single paragraph longer than ~24000 characters (rare, but possible)
-would be silently truncated rather than rejected.
+unlike the previous Ollama backend, which raised a
+clear error on over-length input, `fastembed` silently truncates text
+beyond the context window instead of erroring. The ~24000-character chunk
+size is sized for English prose (~4 chars/token) — code, JSON, and
+non-Latin-script text tokenize far denser (measured: Python ~2.9
+chars/token, JSON ~1.6, Chinese ~1.0), so a normally-sized chunk of
+code-heavy or non-English content can already exceed the 8192-token limit
+and get silently truncated, not only an oversized single paragraph. No
+validation catches this today — a real fix (a token-count guard in
+`mnemo import`, using the tokenizer already loaded in-process) is a
+follow-up, not part of this change.
 
 ## `mnemo graph`
 
