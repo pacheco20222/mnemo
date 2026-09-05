@@ -31,12 +31,24 @@ mcp = FastMCP(
         "the user explicitly asks to set up Mnemo here, call "
         "memory_register_project(name) with a short project id — it "
         "registers the current folder so every future call in it "
-        "resolves automatically, immediately, no restart needed."
+        "resolves automatically, immediately, no restart needed. Beyond "
+        "explicit requests: if you notice a change worth reflecting in "
+        "the project overview document, ask before updating it — don't "
+        "update it silently. Separately, if a while has passed without "
+        "saving anything and something notable has come up, ask whether "
+        "to save it as a note — never save either one automatically."
     ),
 )
 
-_client = store.get_client()
-store.ensure_collection(_client)
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = store.get_client()
+        store.ensure_collection(_client)
+    return _client
 
 
 @mcp.tool
@@ -44,7 +56,7 @@ def memory_add(content: str, type: str) -> dict:
     project = config.get_project()
     config.validate_type(type)
     vector = embeddings.embed_text(content)
-    memory_id = store.add_memory(_client, vector, content, project, type)
+    memory_id = store.add_memory(_get_client(), vector, content, project, type)
     return {"id": memory_id, "project": project, "type": type, "content": content}
 
 
@@ -52,13 +64,13 @@ def memory_add(content: str, type: str) -> dict:
 def memory_search(query: str, type: str | None = None, k: int = 5) -> list[dict]:
     project = config.get_project()
     vector = embeddings.embed_text(query)
-    return store.search_memory(_client, vector, project, type_=type, k=k)
+    return store.search_memory(_get_client(), vector, project, type_=type, k=k)
 
 
 @mcp.tool
 def memory_search_global(query: str, type: str | None = None, k: int = 5) -> list[dict]:
     vector = embeddings.embed_text(query)
-    return store.search_memory_global(_client, vector, type_=type, k=k)
+    return store.search_memory_global(_get_client(), vector, type_=type, k=k)
 
 
 @mcp.tool
@@ -66,14 +78,14 @@ def memory_set_document(slug: str, content: str, type: str) -> dict:
     project = config.get_project()
     config.validate_type(type)
     vector = embeddings.embed_text(content)
-    doc_id = store.set_document(_client, vector, content, project, slug, type)
+    doc_id = store.set_document(_get_client(), vector, content, project, slug, type)
     return {"id": doc_id, "project": project, "slug": slug, "type": type, "content": content}
 
 
 @mcp.tool
 def memory_get_document(slug: str) -> dict | None:
     project = config.get_project()
-    return store.get_document(_client, project, slug)
+    return store.get_document(_get_client(), project, slug)
 
 
 @mcp.tool

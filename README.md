@@ -29,23 +29,23 @@ and installs like any other Python dependency.
 ## Quick start (Claude Code plugin)
 
 Prerequisite: [Docker](https://www.docker.com/)/[OrbStack](https://orbstack.dev/)
-installed (running is enough — `/mnemo-register` starts Qdrant for you).
+installed (running is enough — `/mnemo:mnemo-register` starts Qdrant for you).
 
 Inside Claude Code, in whichever repo you want memory in:
 
 ```
 /plugin marketplace add pacheco20222/mnemo
 /plugin install mnemo
-/mnemo-register my-first-project
+/mnemo:mnemo-register my-first-project
 ```
 
-That's it — nothing gets written into this repo. `/mnemo-register`
+That's it — nothing gets written into this repo. `/mnemo:mnemo-register`
 starts Qdrant if it isn't already running, then registers this folder
 under that project name in a small file outside any repo
 (`~/.mnemo/projects.json`). The first `memory_add` you make downloads
 the embedding model automatically (~500MB, one-time). `memory_add`/
 `memory_search` work immediately, same session, no restart. Run
-`/mnemo-register` again with a different project name in any other
+`/mnemo:mnemo-register` again with a different project name in any other
 repo — same plugin install, no per-repo config at all.
 
 ## Quick start (manual / Codex)

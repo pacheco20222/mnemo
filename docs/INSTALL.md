@@ -17,10 +17,10 @@ Inside Claude Code, in whichever repo you want Mnemo available in:
 ```
 /plugin marketplace add pacheco20222/mnemo
 /plugin install mnemo
-/mnemo-register my-project-name
+/mnemo:mnemo-register my-project-name
 ```
 
-`/mnemo-register` starts Qdrant (via the plugin's own bundled
+`/mnemo:mnemo-register` starts Qdrant (via the plugin's own bundled
 `docker-compose.yml`) if it isn't already running, then registers
 this folder under that project name in `~/.mnemo/projects.json` — a
 file outside any repo, not `.mcp.json`. Nothing gets written into this
@@ -33,7 +33,7 @@ made both available everywhere — registering a folder just tells
 Mnemo which project that folder is. `memory_add`/`memory_search` work
 immediately, same session, no restart.
 
-Run `/mnemo-register <name>` again in any other repo to add Mnemo
+Run `/mnemo:mnemo-register <name>` again in any other repo to add Mnemo
 there — same plugin install, no cloning or hand-edited config, ever.
 This covers the Claude Code side only; Codex still needs the manual
 step in [§4](#4-codex) below, since Codex has no plugin/marketplace or
@@ -41,7 +41,7 @@ registry concept of its own.
 
 The rest of this doc (Option B) is the manual path — read it if you're
 not using Claude Code, want to see exactly what the plugin command
-does under the hood, or ran into something `/mnemo-register` didn't
+does under the hood, or ran into something `/mnemo:mnemo-register` didn't
 handle.
 
 ## Option B: Manual install

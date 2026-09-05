@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.1 — 2026-09-05
+
+### Fixed
+- Qdrant client connection deferred to first actual tool use instead of at
+  module import — a fresh install (Qdrant not started yet) used to crash
+  the MCP server before it could even start, surfacing only as a generic
+  connection failure with no indication why.
+- `/mnemo:mnemo-register` no longer prints a Codex command unconditionally
+  — only relevant if you actually use Codex, and Codex has no way to
+  invoke this command in the first place.
+- README.md and docs/INSTALL.md corrected: the register command's real
+  invocable name is `/mnemo:mnemo-register` (plugin-namespaced), not
+  `/mnemo-register`.
+
+### Added
+- The server now asks before updating the project overview document when
+  it notices a relevant change, and periodically asks about saving a note
+  — both opt-in, never automatic.
+
 ## 2.0.0 — 2026-09-03
 
 ### Changed
