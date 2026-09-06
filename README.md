@@ -57,10 +57,19 @@ docker compose up -d
 uv run mnemo setup --project my-first-project
 ```
 
-Paste the printed config into your repo's `.mcp.json`, or run the printed
-`codex mcp add` command for Codex. See [docs/INSTALL.md](docs/INSTALL.md)
-for the full walkthrough, including the real difference between how
-Claude Code and Codex scope projects.
+For Claude Code: paste the printed `.mcp.json` block into your repo. For
+Codex, run the command it prints — it looks like this, with your real
+path and project name filled in:
+
+```bash
+codex mcp add mnemo --env MNEMO_PROJECT=my-first-project -- uv run --directory /absolute/path/to/mnemo mnemo
+```
+
+Run that from anywhere — `--directory` points at this mnemo clone, not
+the project you're tracking; `MNEMO_PROJECT` is what fixes the project,
+not your current directory. See [docs/INSTALL.md](docs/INSTALL.md) for
+the full walkthrough, including the real difference between how Claude
+Code and Codex scope projects.
 
 ## How it works
 
