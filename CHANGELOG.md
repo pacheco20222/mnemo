@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0 — 2026-09-06
+
+### Added
+- Native Windows support: `scripts/backup.ps1`, `export_json.ps1`, and
+  `daily_backup.ps1` as PowerShell twins of the existing bash scripts
+  (same behavior, no shared code). Documented `schtasks` command as
+  the `launchd`-plist equivalent for the daily schedule. WSL2 needs no
+  code changes — it's Linux underneath, and is now called out in the
+  README/docs as a supported path.
+
 ## 2.0.1 — 2026-09-05
 
 ### Fixed
