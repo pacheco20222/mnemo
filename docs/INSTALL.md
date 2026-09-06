@@ -171,7 +171,40 @@ with Codex:
 Neither is automatic the way Claude Code's per-directory config is —
 pick whichever tradeoff fits how you actually use Codex.
 
-### 5. Verify it worked
+### 5. Windows
+
+Two real options, same as always — pick one, don't mix them for the
+same install:
+
+**WSL2** — this is just Linux underneath. Everything above (Option A
+or B, Claude Code or Codex) works completely unmodified inside a WSL2
+distro. If you're already comfortable with WSL2, this is the easy path
+and there's nothing else in this section for you.
+
+**Native Windows (PowerShell/cmd, no WSL)** — Docker Desktop, `uv`,
+and `docker compose` all work natively; nothing above needs to change
+except two things:
+
+- Paths in `.mcp.json`, `~/.codex/config.toml`, or the `codex mcp add`
+  command need either forward slashes or doubled backslashes — both
+  `C:/Users/you/mnemo` and `C:\\Users\\you\\mnemo` are valid; a single
+  backslash isn't, in JSON or TOML.
+- The backup scripts are PowerShell twins (`backup.ps1`,
+  `export_json.ps1`, `daily_backup.ps1` in `scripts/`) — same
+  behavior as the `.sh` versions, same env vars
+  (`MNEMO_QDRANT_URL`, `MNEMO_COLLECTION`). Run them directly:
+  ```powershell
+  .\scripts\daily_backup.ps1
+  ```
+  For the daily schedule (replaces `launchd` on macOS), one command —
+  no separate task-definition file needed:
+  ```
+  schtasks /create /tn "MnemoDailyBackup" /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\path\to\mnemo\scripts\daily_backup.ps1\"" /sc daily /st 03:00
+  ```
+  `-ExecutionPolicy Bypass` is scoped to just this scheduled task —
+  it doesn't change your system-wide PowerShell execution policy.
+
+### 6. Verify it worked
 
 This is just seeding one test memory so there's something to recall —
 on a fresh install the collection is empty, so say anything you like.

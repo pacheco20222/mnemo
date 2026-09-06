@@ -19,7 +19,8 @@ another repo's memory by accident.
 
 ## Requirements
 
-- macOS or Linux
+- macOS, Linux, or Windows (PowerShell 5.1+/pwsh, or WSL2 — anything
+  Linux-based in this repo just works unmodified under WSL2)
 - [Docker](https://www.docker.com/) or [OrbStack](https://orbstack.dev/) (Qdrant runs in a container)
 - [uv](https://docs.astral.sh/uv/)
 
