@@ -14,8 +14,8 @@ another repo's memory by accident.
 - **Checkpoint/resume** — say "checkpoint this" before a long session ends; it's recalled automatically the next time you start one.
 - **Named documents** — a project overview or running dev log that updates in place instead of piling up, also auto-loaded every session.
 - **`memory_search_global`** — the one explicit, deliberate escape hatch for a genuinely cross-project question.
-- **`mnemo import`** — bulk-load an existing file into a project's memory.
-- **`mnemo graph`** — a real, embedding-similarity graph of your memories, rendered locally and opened in your browser.
+- **`mnemo import`** — bulk-load an existing file into a project's memory. Run yourself, from a terminal — see [docs/INSTALL.md §5](docs/INSTALL.md#5-running-mnemos-other-commands-import-graph).
+- **`mnemo graph`** — a real, embedding-similarity graph of your memories, rendered locally and opened in your browser. Same terminal invocation as `import` above.
 
 ## Requirements
 

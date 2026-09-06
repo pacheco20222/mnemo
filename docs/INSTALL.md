@@ -171,7 +171,39 @@ with Codex:
 Neither is automatic the way Claude Code's per-directory config is —
 pick whichever tradeoff fits how you actually use Codex.
 
-### 5. Windows
+### 5. Running `mnemo`'s other commands (import, graph)
+
+`mnemo import` and `mnemo graph` aren't called by Claude Code or
+Codex — you run these yourself, directly. Like every `uv run mnemo`
+invocation, `uv` needs to find mnemo's own code, either by cwd or by
+`--directory`:
+
+```bash
+cd /path/to/mnemo   # wherever you cloned it
+uv run mnemo graph --project your-project-name
+uv run mnemo import notes.md --project your-project-name --type note
+```
+
+or from anywhere else:
+
+```bash
+uv run --directory /path/to/mnemo mnemo graph --project your-project-name
+```
+
+Real gotcha with `--directory`: it changes the command's working
+directory to wherever you cloned mnemo, not wherever you actually are
+— so a relative file path passed to `mnemo import` (e.g. `notes.md`)
+resolves against **mnemo's** folder, not yours, unless you `cd` into
+mnemo first (first example above) or pass an absolute path to the
+file instead.
+
+`mnemo graph` without `--project` graphs every project's memories
+together, not just one. It needs at least 2 memories to draw anything,
+writes a self-contained HTML file (`--out path.html` to control
+where — defaults to your current directory), and opens it in your
+default browser automatically.
+
+### 6. Windows
 
 Two real options, same as always — pick one, don't mix them for the
 same install:
@@ -204,7 +236,13 @@ except two things:
   `-ExecutionPolicy Bypass` is scoped to just this scheduled task —
   it doesn't change your system-wide PowerShell execution policy.
 
-### 6. Verify it worked
+`mnemo import` and `mnemo graph` (§5 above) need nothing extra on
+Windows — both are plain, cross-platform Python: `mnemo graph`'s
+browser-opening and `mnemo import`'s file reading have no OS-specific
+code path to work around. The same `cd` / `--directory` rule from §5
+applies exactly as written.
+
+### 7. Verify it worked
 
 This is just seeding one test memory so there's something to recall —
 on a fresh install the collection is empty, so say anything you like.
