@@ -143,6 +143,15 @@ Run the command `mnemo setup` printed:
 codex mcp add mnemo --env MNEMO_PROJECT=your-project-name -- uv run --directory /absolute/path/to/mnemo mnemo
 ```
 
+Two things that trip people up here: `--directory` points at wherever
+you cloned **mnemo itself**, not the project you're tracking — that's
+just so `uv` can find mnemo's own code to run, and has nothing to do
+with project scoping. You don't need to run this command from inside
+the target repo (`your-project-name`'s folder) either — `MNEMO_PROJECT`
+fixes the project for every call this server makes, completely
+independent of your current directory, unlike Claude Code's
+cwd-based registry.
+
 This registers **one** globally-visible `mnemo` server fixed to that
 one project. Two real options if you work across multiple projects
 with Codex:
@@ -164,6 +173,8 @@ pick whichever tradeoff fits how you actually use Codex.
 
 ### 5. Verify it worked
 
+This is just seeding one test memory so there's something to recall —
+on a fresh install the collection is empty, so say anything you like.
 In a Claude Code or Codex session in your configured repo:
 
 > "Remember that we're using Mnemo to give you persistent memory."
