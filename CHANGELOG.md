@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Native Windows MCP startup no longer imports and initializes FastEmbed before
+  the stdio handshake. The first embedding request still performs the existing
+  one-time model initialization, while macOS and Linux keep their previous
+  startup behavior.
+- `mnemo setup` now prints valid JSON paths and a native PowerShell recall hook
+  on Windows.
+
 ## 2.1.0 — 2026-09-06
 
 ### Added
