@@ -51,6 +51,8 @@ repo — same plugin install, no per-repo config at all.
 
 ## Quick start (manual / Codex)
 
+### macOS, Linux, or WSL2
+
 ```bash
 git clone git@github.com:pacheco20222/mnemo.git
 cd mnemo
@@ -71,6 +73,39 @@ the project you're tracking; `MNEMO_PROJECT` is what fixes the project,
 not your current directory. See [docs/INSTALL.md](docs/INSTALL.md) for
 the full walkthrough, including the real difference between how Claude
 Code and Codex scope projects.
+
+### Native Windows (PowerShell)
+
+Use forward slashes in the path passed to Codex. Replace the example
+clone path and project name with your own:
+
+```powershell
+git clone https://github.com/pacheco20222/mnemo.git
+Set-Location mnemo
+docker compose up -d
+uv run mnemo setup --project my-first-project
+
+codex mcp add mnemo --env "MNEMO_PROJECT=my-first-project" -- uv run --directory "C:/absolute/path/to/mnemo" mnemo
+codex mcp get mnemo
+
+Set-Location "C:/path/to/my-first-project"
+codex
+```
+
+The `codex mcp add` command is a one-time registration. Start a new Codex
+session after adding it. To point the existing `mnemo` entry at another
+project, remove and add it again with the new project name:
+
+```powershell
+codex mcp remove mnemo
+codex mcp add mnemo --env "MNEMO_PROJECT=my-other-project" -- uv run --directory "C:/absolute/path/to/mnemo" mnemo
+```
+
+On Windows, Mnemo starts the MCP handshake before initializing FastEmbed.
+The first `memory_add` or `memory_search` can therefore take longer while
+the embedding model downloads, but it no longer blocks Codex from starting
+the MCP server. See [docs/INSTALL.md §6](docs/INSTALL.md#6-windows) for
+verification and troubleshooting.
 
 ## How it works
 

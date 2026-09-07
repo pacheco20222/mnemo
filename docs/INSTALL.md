@@ -132,15 +132,27 @@ the file.
 ### 4. Codex
 
 This is genuinely different from Claude Code, not just a syntax
-change: **Codex's MCP configuration is global** (`~/.codex/config.toml`),
-not scoped per directory. There's no automatic "this repo gets this
-project" behavior the way `.mcp.json` gives Claude Code — Codex has to
-be told which project applies, every time, by you.
+change: the `codex mcp add` command writes a **global** entry to
+`~/.codex/config.toml`. There's no automatic "this repo gets this project"
+behavior from that global entry the way `.mcp.json` gives Claude Code —
+the configured `MNEMO_PROJECT` selects the project for every session that
+loads that server. Codex also supports project-scoped `.codex/config.toml`
+files in trusted projects, but the command below uses the simpler global
+setup.
 
 Run the command `mnemo setup` printed:
 
 ```bash
 codex mcp add mnemo --env MNEMO_PROJECT=your-project-name -- uv run --directory /absolute/path/to/mnemo mnemo
+```
+
+This is a one-time registration, not a command you run before every Codex
+session. Verify what Codex stored, then start a new session:
+
+```bash
+codex mcp get mnemo
+codex mcp list
+codex
 ```
 
 Two things that trip people up here: `--directory` points at wherever
@@ -170,6 +182,14 @@ with Codex:
 
 Neither is automatic the way Claude Code's per-directory config is —
 pick whichever tradeoff fits how you actually use Codex.
+
+If `mnemo` is already registered and you want that name to point to a
+different project, replace the entry and restart Codex:
+
+```bash
+codex mcp remove mnemo
+codex mcp add mnemo --env MNEMO_PROJECT=my-other-project -- uv run --directory /absolute/path/to/mnemo mnemo
+```
 
 ### 5. Running `mnemo`'s other commands (import, graph)
 
@@ -214,8 +234,28 @@ distro. If you're already comfortable with WSL2, this is the easy path
 and there's nothing else in this section for you.
 
 **Native Windows (PowerShell/cmd, no WSL)** — Docker Desktop, `uv`,
-and `docker compose` all work natively; nothing above needs to change
-except two things:
+and `docker compose` all work natively. From PowerShell, the complete
+setup is:
+
+```powershell
+git clone https://github.com/pacheco20222/mnemo.git
+Set-Location mnemo
+docker compose up -d
+uv run mnemo setup --project my-first-project
+
+codex mcp add mnemo --env "MNEMO_PROJECT=my-first-project" -- uv run --directory "C:/absolute/path/to/mnemo" mnemo
+codex mcp get mnemo
+
+Set-Location "C:/path/to/my-first-project"
+codex
+```
+
+Replace `C:/absolute/path/to/mnemo` with the folder where you cloned Mnemo.
+`--directory` points to the Mnemo clone, not the application project you
+want it to remember. `MNEMO_PROJECT` is the memory namespace for that
+application. Run `codex mcp add` once, then start or restart Codex.
+
+Windows-specific details:
 
 - Paths in `.mcp.json`, `~/.codex/config.toml`, or the `codex mcp add`
   command need either forward slashes or doubled backslashes — both
@@ -235,6 +275,33 @@ except two things:
   ```
   `-ExecutionPolicy Bypass` is scoped to just this scheduled task —
   it doesn't change your system-wide PowerShell execution policy.
+
+#### Windows Codex startup and troubleshooting
+
+Mnemo defers FastEmbed import and model initialization until the first
+embedding request on native Windows. This lets the MCP server answer Codex's
+`initialize` request before the one-time model download begins. The first
+`memory_add` or `memory_search` can still take longer while the model is
+downloaded and loaded; later requests use the cached model.
+
+If Codex reports that Mnemo failed during the `initialize` response:
+
+1. Confirm the stored command and project:
+   ```powershell
+   codex mcp get mnemo
+   codex mcp list
+   ```
+2. Confirm Qdrant is running from the Mnemo clone:
+   ```powershell
+   docker compose ps
+   ```
+3. Make sure the stored `--directory` uses the real Mnemo clone path with
+   forward slashes, such as `C:/Users/you/code/mnemo`.
+4. Remove and recreate a stale entry, then restart Codex:
+   ```powershell
+   codex mcp remove mnemo
+   codex mcp add mnemo --env "MNEMO_PROJECT=my-project" -- uv run --directory "C:/Users/you/code/mnemo" mnemo
+   ```
 
 `mnemo import` and `mnemo graph` (§5 above) need nothing extra on
 Windows — both are plain, cross-platform Python: `mnemo graph`'s
