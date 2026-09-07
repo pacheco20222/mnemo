@@ -1,14 +1,18 @@
 import argparse
+import base64
 import json
 import shlex
 import sys
 from pathlib import Path
 
 
-def _powershell_quote(value: str, *, nested: bool = False) -> str:
-    """Quote a PowerShell literal, optionally inside an outer double-quoted string."""
-    if nested:
-        value = value.replace("`", "``").replace("$", "`$").replace('"', '\\`"')
+def _powershell_quote(value: str) -> str:
+    """Quote a value as a PowerShell single-quoted string literal.
+
+    Single-quoted PowerShell strings have exactly one escaping rule —
+    double an embedded `'` — so this is correct wherever the result is
+    used, with no separate "nested" mode needed.
+    """
     return "'" + value.replace("'", "''") + "'"
 
 
@@ -22,12 +26,12 @@ def main(argv: list[str]) -> None:
 
     if sys.platform == "win32":
         install_path = install_dir.as_posix()
-        hook_command = (
-            'powershell.exe -NoProfile -Command '
-            f'"`$env:MNEMO_PROJECT={_powershell_quote(project, nested=True)}; '
-            f"uv run --directory {_powershell_quote(install_path, nested=True)} "
-            'mnemo-recall"'
+        ps_script = (
+            f"$env:MNEMO_PROJECT={_powershell_quote(project)}; "
+            f"uv run --directory {_powershell_quote(install_path)} mnemo-recall"
         )
+        encoded_script = base64.b64encode(ps_script.encode("utf-16le")).decode("ascii")
+        hook_command = f"powershell.exe -NoProfile -EncodedCommand {encoded_script}"
         codex_cmd = (
             "codex mcp add mnemo --env "
             f"{_powershell_quote(f'MNEMO_PROJECT={project}')} -- "
@@ -72,5 +76,7 @@ def main(argv: list[str]) -> None:
     print(hook_json)
     print("\nFor Codex, run:\n")
     print(codex_cmd)
+    if sys.platform == "win32":
+        print("\n(Run this from PowerShell, not cmd.exe — the quoting above assumes it.)")
     if args.project is None:
         print("\n(Replace 'your-project-name' with your actual project id, or re-run with --project NAME.)")

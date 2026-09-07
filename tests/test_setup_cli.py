@@ -22,40 +22,31 @@ def _codex_command(out: str) -> str:
 
 
 @pytest.mark.parametrize(
-    ("value", "direct", "nested"),
+    ("value", "quoted"),
     [
-        ("$", "'$'", "'`$'"),
-        ("`", "'`'", "'``'"),
-        ("'", "''''", "''''"),
-        ('"', "'\"'", "'\\`\"'"),
-        ("$`'\"", "'$`''\"'", "'`$``''\\`\"'"),
+        ("$", "'$'"),
+        ("`", "'`'"),
+        ("'", "''''"),
+        ('"', "'\"'"),
+        ("$`'\"", "'$`''\"'"),
     ],
 )
-def test_powershell_quote_handles_direct_and_nested_contexts(
-    value, direct, nested
-):
-    assert setup_cli._powershell_quote(value) == direct
-    assert setup_cli._powershell_quote(value, nested=True) == nested
+def test_powershell_quote_doubles_single_quotes_only(value, quoted):
+    assert setup_cli._powershell_quote(value) == quoted
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="requires PowerShell")
-def test_powershell_quote_round_trips_both_contexts():
+def test_powershell_quote_round_trips_via_encoded_command():
     value = "$`'\"combined"
-    direct_command = f"[Console]::Out.Write({setup_cli._powershell_quote(value)})"
-    nested_command = (
-        'powershell.exe -NoProfile -Command '
-        f'"[Console]::Out.Write({setup_cli._powershell_quote(value, nested=True)})"'
+    command = f"[Console]::Out.Write({setup_cli._powershell_quote(value)})"
+    encoded_command = base64.b64encode(command.encode("utf-16le")).decode("ascii")
+    result = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-EncodedCommand", encoded_command],
+        check=True,
+        capture_output=True,
+        text=True,
     )
-
-    for command in (direct_command, nested_command):
-        encoded_command = base64.b64encode(command.encode("utf-16le")).decode("ascii")
-        result = subprocess.run(
-            ["powershell.exe", "-NoProfile", "-EncodedCommand", encoded_command],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        assert result.stdout == value, command
+    assert result.stdout == value, command
 
 
 def test_setup_prints_mcp_json_and_codex_command(capsys):
@@ -84,10 +75,14 @@ def test_setup_prints_session_start_hook_block(capsys):
 
     assert hook_config["hooks"]["SessionStart"][0]["matcher"] == "startup|resume|clear"
     if sys.platform == "win32":
-        assert command.startswith("powershell.exe -NoProfile -Command ")
+        assert command.startswith("powershell.exe -NoProfile -EncodedCommand ")
+        encoded = command.split("-EncodedCommand ", maxsplit=1)[1]
+        script = base64.b64decode(encoded).decode("utf-16le")
+        assert "MNEMO_PROJECT='myproj'" in script
+        assert "mnemo-recall" in script
     else:
         assert "MNEMO_PROJECT=myproj uv run --directory" in command
-    assert "mnemo-recall" in command
+        assert "mnemo-recall" in command
 
 
 @pytest.mark.parametrize("platform", ["win32", "linux"])
@@ -103,30 +98,35 @@ def test_setup_json_round_trips_special_project_on_both_platforms(
 
     assert mcp_config["mcpServers"]["mnemo"]["env"]["MNEMO_PROJECT"] == project
     if platform == "win32":
-        assert setup_cli._powershell_quote(project, nested=True) in hook_command
+        encoded = hook_command.split("-EncodedCommand ", maxsplit=1)[1]
+        script = base64.b64decode(encoded).decode("utf-16le")
+        assert setup_cli._powershell_quote(project) in script
     else:
         assert project in hook_command
 
 
-def test_windows_commands_quote_every_interpolated_value(monkeypatch, capsys):
+def test_windows_hook_and_codex_commands_encode_every_interpolated_value(
+    monkeypatch, capsys
+):
+    # Uses the real local install path (whatever OS this test runs on) —
+    # only the quoting/encoding logic is under test here, not real Windows
+    # path resolution, which the windows-latest CI job exercises for real.
     project = "$`'\""
     monkeypatch.setattr(setup_cli.sys, "platform", "win32")
-    monkeypatch.setattr(
-        setup_cli,
-        "__file__",
-        "C:/Users/O'Brien/mnemo/src/mnemo/setup_cli.py",
-    )
 
     setup_cli.main(["--project", project])
     out = capsys.readouterr().out
     mcp_config, hook_config = _printed_json_documents(out)
     install_path = mcp_config["mcpServers"]["mnemo"]["args"][1]
+    hook_command = hook_config["hooks"]["SessionStart"][0]["hooks"][0]["command"]
 
-    expected_hook = (
-        'powershell.exe -NoProfile -Command '
-        f'"`$env:MNEMO_PROJECT={setup_cli._powershell_quote(project, nested=True)}; '
-        f'uv run --directory {setup_cli._powershell_quote(install_path, nested=True)} '
-        'mnemo-recall"'
+    assert hook_command.startswith("powershell.exe -NoProfile -EncodedCommand ")
+    encoded = hook_command.split("-EncodedCommand ", maxsplit=1)[1]
+    script = base64.b64decode(encoded).decode("utf-16le")
+
+    expected_script = (
+        f"$env:MNEMO_PROJECT={setup_cli._powershell_quote(project)}; "
+        f"uv run --directory {setup_cli._powershell_quote(install_path)} mnemo-recall"
     )
     expected_codex = (
         "codex mcp add mnemo --env "
@@ -134,7 +134,5 @@ def test_windows_commands_quote_every_interpolated_value(monkeypatch, capsys):
         f"uv run --directory {setup_cli._powershell_quote(install_path)} mnemo"
     )
 
-    assert "\\" not in install_path
-    assert "O'Brien" in install_path
-    assert hook_config["hooks"]["SessionStart"][0]["hooks"][0]["command"] == expected_hook
+    assert script == expected_script
     assert _codex_command(out) == expected_codex

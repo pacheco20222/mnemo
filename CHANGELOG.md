@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.1 — 2026-09-07
+
+### Fixed
+- FastEmbed's eager construction at module import (blocking the MCP stdio
+  handshake past the client's startup timeout) is now deferred universally,
+  not just on Windows — matching the same lazy-init pattern already used
+  for the Qdrant client. Guarded with a lock against the first two
+  concurrent tool calls racing to construct the model twice.
+- `mnemo setup`'s generated Windows commands no longer corrupt project
+  names or paths containing `` ` ``, `$`, or `"` — the SessionStart hook
+  command is now passed via PowerShell's `-EncodedCommand` (base64)
+  instead of hand-escaped nested quoting, which also sidesteps `cmd.exe`
+  metacharacters entirely. The printed Codex command now states it must
+  be run from PowerShell, not `cmd.exe`.
+- Windows CI job now has a 15-minute timeout, so a stalled model download
+  fails the run instead of hanging silently.
+
 ## 2.1.0 — 2026-09-06
 
 ### Added
