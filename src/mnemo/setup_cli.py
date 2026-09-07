@@ -46,7 +46,7 @@ def main(argv: list[str]) -> None:
             indent=2,
         )
         codex_cmd = (
-            f"codex mcp add mnemo --env MNEMO_PROJECT={project} -- "
+            f'codex mcp add mnemo --env "MNEMO_PROJECT={project}" -- '
             f'uv run --directory "{install_path}" mnemo'
         )
     else:
