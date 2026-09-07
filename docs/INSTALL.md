@@ -242,6 +242,29 @@ browser-opening and `mnemo import`'s file reading have no OS-specific
 code path to work around. The same `cd` / `--directory` rule from §5
 applies exactly as written.
 
+#### MCP connects, but the first memory tool fails
+
+Mnemo now waits until the first `memory_add` or `memory_search` call to
+load FastEmbed and, on a new install, download the embedding model. This
+keeps model setup out of the MCP initialization handshake. If that first
+tool call fails or times out, while the MCP itself still shows as
+connected, look for a FastEmbed, Hugging Face, ONNX, download, or model
+cache error in the tool result. Check your network connection, available
+disk space, and write access to `%USERPROFILE%\.mnemo\models`.
+
+You can retry the model load directly in PowerShell and see the complete
+error outside the MCP client:
+
+```powershell
+uv run --directory 'C:/path/to/mnemo' python -c "from mnemo.embeddings import embed_text; print(len(embed_text('warmup')))"
+```
+
+A successful run prints `768`. If the first MCP call merely timed out
+while the download continued, let the download finish and retry the same
+memory tool. If the command above reports an error, fix that error and
+run it again; a failed initialization leaves the model uninitialized, so
+the next call retries it.
+
 ### 7. Verify it worked
 
 This is just seeding one test memory so there's something to recall —
