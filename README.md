@@ -25,7 +25,9 @@ another repo's memory by accident.
 - [uv](https://docs.astral.sh/uv/)
 
 No GPU, no separate embedding service — `fastembed` runs locally on CPU
-and installs like any other Python dependency.
+and installs like any other Python dependency. Mnemo initializes it only
+when the first memory tool is called, so loading or downloading the model
+does not delay the MCP startup handshake on Windows, macOS, or Linux.
 
 ## Quick start (Claude Code plugin)
 
@@ -66,11 +68,22 @@ path and project name filled in:
 codex mcp add mnemo --env MNEMO_PROJECT=my-first-project -- uv run --directory /absolute/path/to/mnemo mnemo
 ```
 
+On native Windows, run `uv run mnemo setup --project my-first-project`
+from PowerShell and paste the command it prints. The generated command
+quotes the project and clone path safely and uses a JSON/TOML-compatible
+forward-slash path:
+
+```powershell
+codex mcp add mnemo --env 'MNEMO_PROJECT=my-first-project' -- uv run --directory 'C:/absolute/path/to/mnemo' mnemo
+```
+
 Run that from anywhere — `--directory` points at this mnemo clone, not
 the project you're tracking; `MNEMO_PROJECT` is what fixes the project,
 not your current directory. See [docs/INSTALL.md](docs/INSTALL.md) for
 the full walkthrough, including the real difference between how Claude
-Code and Codex scope projects.
+Code and Codex scope projects. If the MCP connects but the first
+`memory_add` or `memory_search` fails while FastEmbed loads or downloads
+the model, follow the [first-tool troubleshooting steps](docs/INSTALL.md#mcp-connects-but-the-first-memory-tool-fails).
 
 ## How it works
 
