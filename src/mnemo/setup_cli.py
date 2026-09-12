@@ -74,6 +74,8 @@ def main(argv: list[str]) -> None:
     print(mcp_json)
     print("\nOptional — add this to your repo's .claude/settings.json to auto-load checkpoints and documents every session:\n")
     print(hook_json)
+    print("\nFor Cursor, add the same block to your repo's .cursor/mcp.json instead (identical format, different file):\n")
+    print(mcp_json)
     print("\nFor Codex, run:\n")
     print(codex_cmd)
     if sys.platform == "win32":

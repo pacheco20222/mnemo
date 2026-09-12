@@ -16,27 +16,44 @@ Inside Claude Code, in whichever repo you want Mnemo available in:
 
 ```
 /plugin marketplace add pacheco20222/mnemo
-/plugin install mnemo
+/plugin install mnemo --scope project
 /mnemo:mnemo-register my-project-name
 ```
 
-`/mnemo:mnemo-register` starts Qdrant (via the plugin's own bundled
-`docker-compose.yml`) if it isn't already running, then registers
-this folder under that project name in `~/.mnemo/projects.json` — a
-file outside any repo, not `.mcp.json`. Nothing gets written into this
-repo at all. The first `memory_add` you make afterward downloads the
-embedding model automatically (~500MB, one-time).
-
-The MCP server and the checkpoint/resume `SessionStart` hook are both
-bundled with the plugin itself, so installing it once (above) already
-made both available everywhere — registering a folder just tells
-Mnemo which project that folder is. `memory_add`/`memory_search` work
+`--scope project` installs the plugin for this repo only — it will not
+appear in any other project. This is the recommended default: each
+repo you do this in gets its own isolated memory, and nothing connects
+across repos unless you deliberately make it. `/mnemo:mnemo-register`
+starts Qdrant (via the plugin's own bundled `docker-compose.yml`) if
+it isn't already running, then registers this folder under that
+project name in `~/.mnemo/projects.json` — a file outside any repo,
+not `.mcp.json`. Nothing gets written into this repo at all. The first
+`memory_add` you make afterward downloads the embedding model
+automatically (~500MB, one-time). `memory_add`/`memory_search` work
 immediately, same session, no restart.
 
-Run `/mnemo:mnemo-register <name>` again in any other repo to add Mnemo
-there — same plugin install, no cloning or hand-edited config, ever.
+Repeat both commands (with that repo's own project name) in any other
+repo you want Mnemo in — no cloning or hand-edited config, ever, and by
+default each repo's memory stays separate from every other repo's.
+
+If you'd rather have Mnemo available in *every* project without
+installing it repo by repo, use `--scope user` instead (Claude Code's
+default if `--scope` is omitted) — the plugin and its MCP server are
+then present everywhere, but each repo still needs its own
+`/mnemo:mnemo-register` before memory tools work there, so nothing is
+silently connected just because the plugin is present. The only way
+two repos end up sharing memories is registering both of them under
+the *same* project name — a deliberate choice, never a default.
+
+If `/plugin install mnemo --scope project` reports "already installed"
+instead of enabling it, mnemo is already installed elsewhere on this
+machine (e.g. at `user` scope from an earlier setup) — Claude Code
+installs a plugin's code once, machine-wide. Use
+`/plugin enable mnemo --scope project` instead, which toggles a scope
+on for an already-installed plugin.
+
 This covers the Claude Code side only; Codex still needs the manual
-step in [§4](#4-codex) below, since Codex has no plugin/marketplace or
+step in [§5](#5-codex) below, since Codex has no plugin/marketplace or
 registry concept of its own.
 
 The rest of this doc (Option B) is the manual path — read it if you're
@@ -129,7 +146,46 @@ If a `.claude/settings.json` already exists in that repo, add the
 `"hooks"` key alongside whatever's already there rather than replacing
 the file.
 
-### 4. Codex
+### 4. Cursor
+
+Cursor's MCP config is the same `mcpServers` JSON shape as Claude
+Code's, just a different file: `.cursor/mcp.json` at the root of
+whichever repo you want Mnemo in, instead of `.mcp.json`. Cursor scopes
+it per-repo automatically the same way Claude Code does — a project's
+`.cursor/mcp.json` only applies inside that project.
+
+Copy the exact same block `mnemo setup` printed for Claude Code into
+`.cursor/mcp.json` instead:
+
+```json
+{
+  "mcpServers": {
+    "mnemo": {
+      "command": "uv",
+      "args": ["--directory", "/absolute/path/to/mnemo", "run", "mnemo"],
+      "env": {
+        "MNEMO_PROJECT": "your-project-name"
+      }
+    }
+  }
+}
+```
+
+Same rule as Claude Code: give each repo its own `MNEMO_PROJECT` value.
+Restart Cursor (or reload the window) after adding or editing this
+file for it to pick up the server.
+
+Cursor has no plugin/marketplace system and no `SessionStart`-hook
+equivalent, so there's no bundled-plugin install path and no automatic
+checkpoint/document auto-load the way Claude Code's optional hook
+gives you — `memory_add`/`memory_search`/`memory_get_document` work
+once the server's connected, but recall at the start of a session is
+manual (ask the agent to call `memory_get_document` or
+`memory_search` for a checkpoint) unless you wire up your own
+equivalent of Cursor's session-start behavior, if it has one in your
+version.
+
+### 5. Codex
 
 This is genuinely different from Claude Code, not just a syntax
 change: **Codex's MCP configuration is global** (`~/.codex/config.toml`),
@@ -171,7 +227,7 @@ with Codex:
 Neither is automatic the way Claude Code's per-directory config is —
 pick whichever tradeoff fits how you actually use Codex.
 
-### 5. Running `mnemo`'s other commands (import, graph)
+### 6. Running `mnemo`'s other commands (import, graph)
 
 `mnemo import` and `mnemo graph` aren't called by Claude Code or
 Codex — you run these yourself, directly. Like every `uv run mnemo`
@@ -203,7 +259,7 @@ writes a self-contained HTML file (`--out path.html` to control
 where — defaults to your current directory), and opens it in your
 default browser automatically.
 
-### 6. Windows
+### 7. Windows
 
 Two real options, same as always — pick one, don't mix them for the
 same install:
@@ -265,7 +321,7 @@ memory tool. If the command above reports an error, fix that error and
 run it again; a failed initialization leaves the model uninitialized, so
 the next call retries it.
 
-### 7. Verify it worked
+### 8. Verify it worked
 
 This is just seeding one test memory so there's something to recall —
 on a fresh install the collection is empty, so say anything you like.

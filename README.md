@@ -1,7 +1,7 @@
 # Mnemo
 
-Self-hosted, project-scoped memory for Claude Code and Codex. No cloud
-services, no paid APIs — everything runs on your own machine.
+Self-hosted, project-scoped memory for Claude Code, Cursor, and Codex.
+No cloud services, no paid APIs — everything runs on your own machine.
 
 Mnemo gives an AI coding agent a place to remember things across
 sessions: architecture decisions, in-progress debugging state, a
@@ -14,7 +14,7 @@ another repo's memory by accident.
 - **Checkpoint/resume** — say "checkpoint this" before a long session ends; it's recalled automatically the next time you start one.
 - **Named documents** — a project overview or running dev log that updates in place instead of piling up, also auto-loaded every session.
 - **`memory_search_global`** — the one explicit, deliberate escape hatch for a genuinely cross-project question.
-- **`mnemo import`** — bulk-load an existing file into a project's memory. Run yourself, from a terminal — see [docs/INSTALL.md §5](docs/INSTALL.md#5-running-mnemos-other-commands-import-graph).
+- **`mnemo import`** — bulk-load an existing file into a project's memory. Run yourself, from a terminal — see [docs/INSTALL.md §6](docs/INSTALL.md#6-running-mnemos-other-commands-import-graph).
 - **`mnemo graph`** — a real, embedding-similarity graph of your memories, rendered locally and opened in your browser. Same terminal invocation as `import` above.
 
 ## Requirements
@@ -38,20 +38,40 @@ Inside Claude Code, in whichever repo you want memory in:
 
 ```
 /plugin marketplace add pacheco20222/mnemo
-/plugin install mnemo
+/plugin install mnemo --scope project
 /mnemo:mnemo-register my-first-project
 ```
 
-That's it — nothing gets written into this repo. `/mnemo:mnemo-register`
-starts Qdrant if it isn't already running, then registers this folder
-under that project name in a small file outside any repo
-(`~/.mnemo/projects.json`). The first `memory_add` you make downloads
-the embedding model automatically (~500MB, one-time). `memory_add`/
-`memory_search` work immediately, same session, no restart. Run
-`/mnemo:mnemo-register` again with a different project name in any other
-repo — same plugin install, no per-repo config at all.
+`--scope project` keeps Mnemo scoped to this one repo — installing it
+here doesn't make it show up in any other project you open. That's the
+recommended default: each repo gets its own isolated memory, and
+nothing connects to anything else unless you say so. Want it available
+in another repo too? Run the same three commands there (with that
+repo's own project name) — nothing gets written into either repo
+either way. `/mnemo:mnemo-register` starts Qdrant if it isn't already
+running, then registers the current folder under that project name in
+a small file outside any repo (`~/.mnemo/projects.json`). The first
+`memory_add` you make downloads the embedding model automatically
+(~500MB, one-time). `memory_add`/`memory_search` work immediately,
+same session, no restart.
 
-## Quick start (manual / Codex)
+Want Mnemo available everywhere without installing it repo by repo?
+Use `--scope user` instead (Claude Code's default if you omit
+`--scope`) — the plugin itself is then available in every project, but
+each repo still needs its own `/mnemo:mnemo-register` before memory
+tools work there, so nothing is silently connected. Two repos only
+ever share the same memories if you deliberately register both under
+the *same* project name — that's the one supported way to "join"
+projects, and it's opt-in, never automatic.
+
+If `/plugin install mnemo --scope project` says "already installed"
+instead of enabling it, that means mnemo is already installed
+somewhere else on your machine (e.g. at `user` scope from an earlier
+setup) — Claude Code only ever installs a plugin's code once. Use
+`/plugin enable mnemo --scope project` instead; that's the command
+that actually toggles a scope on for an already-installed plugin.
+
+## Quick start (manual / Cursor / Codex)
 
 ```bash
 git clone git@github.com:pacheco20222/mnemo.git
@@ -60,7 +80,9 @@ docker compose up -d
 uv run mnemo setup --project my-first-project
 ```
 
-For Claude Code: paste the printed `.mcp.json` block into your repo. For
+For Claude Code: paste the printed `.mcp.json` block into your repo.
+For Cursor: paste the same block into that repo's `.cursor/mcp.json`
+instead — identical format, different file, same per-repo scoping. For
 Codex, run the command it prints — it looks like this, with your real
 path and project name filled in:
 

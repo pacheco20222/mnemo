@@ -61,6 +61,13 @@ def test_setup_prints_mcp_json_and_codex_command(capsys):
     assert '"command": "uv"' in out
 
 
+def test_setup_prints_cursor_block_matching_claude_code_block(capsys):
+    setup_cli.main(["--project", "myproj"])
+    out = capsys.readouterr().out
+    assert "For Cursor, add the same block to your repo's .cursor/mcp.json" in out
+    assert out.count('"MNEMO_PROJECT": "myproj"') == 2
+
+
 def test_setup_uses_placeholder_when_no_project_given(capsys):
     setup_cli.main([])
     out = capsys.readouterr().out
