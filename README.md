@@ -55,6 +55,12 @@ a small file outside any repo (`~/.mnemo/projects.json`). The first
 (~500MB, one-time). `memory_add`/`memory_search` work immediately,
 same session, no restart.
 
+Right after registering, it asks if you want to add a core memory —
+a project overview, seeded from `CLAUDE.md`/`AGENTS.md`/`PROJECT.md`/
+`README.md` if one exists (condensed, not pasted verbatim) or a short
+paragraph you give it otherwise. It's optional and only happens if you
+say yes; you can always add or replace it later the same way.
+
 Want Mnemo available everywhere without installing it repo by repo?
 Use `--scope user` instead (Claude Code's default if you omit
 `--scope`) — the plugin itself is then available in every project, but

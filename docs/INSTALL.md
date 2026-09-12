@@ -32,6 +32,13 @@ not `.mcp.json`. Nothing gets written into this repo at all. The first
 automatically (~500MB, one-time). `memory_add`/`memory_search` work
 immediately, same session, no restart.
 
+Right after registering, it asks whether you want to add a core
+memory — a project overview seeded from `CLAUDE.md`, `AGENTS.md`,
+`PROJECT.md`, or `README.md` if one of those exists (condensed, not
+pasted in full), or a short paragraph you provide if none do. It's
+optional, only happens on a yes, and can be added or replaced later
+with `memory_set_document` regardless.
+
 Repeat both commands (with that repo's own project name) in any other
 repo you want Mnemo in — no cloning or hand-edited config, ever, and by
 default each repo's memory stays separate from every other repo's.

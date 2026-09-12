@@ -21,7 +21,7 @@ Every memory is one Qdrant point:
 | `id` | UUID | Random for regular memories; deterministic (`uuid5(project:slug)`) for named documents |
 | `vector` | float[768] | `nomic-embed-text-v1.5` embedding of `content` |
 | `project` | string | Required on every point — the hard isolation boundary |
-| `type` | string | `decision` \| `architecture` \| `bug` \| `todo` \| `note` \| `checkpoint` |
+| `type` | string | `decision` \| `architecture` \| `bug` \| `todo` \| `note` \| `checkpoint` \| `overview` |
 | `content` | string | The memory text |
 | `created_at` | ISO8601 UTC | |
 | `source` | string, optional | File path for `mnemo import`-created memories |

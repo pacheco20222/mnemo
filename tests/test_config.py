@@ -25,7 +25,7 @@ def test_get_project_raises_when_blank(monkeypatch, tmp_path):
 
 
 def test_validate_type_accepts_known_types():
-    for known in ("decision", "architecture", "bug", "todo", "note", "checkpoint"):
+    for known in ("decision", "architecture", "bug", "todo", "note", "checkpoint", "overview"):
         config.validate_type(known)  # must not raise
 
 
