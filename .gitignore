@@ -3,6 +3,5 @@ __pycache__/
 *$py.class
 .venv
 .pytest_cache/
-qdrant_storage/
 backups/
 mnemo-graph-*.html
