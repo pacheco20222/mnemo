@@ -59,9 +59,11 @@ installs a plugin's code once, machine-wide. Use
 `/plugin enable mnemo --scope project` instead, which toggles a scope
 on for an already-installed plugin.
 
-This covers the Claude Code side only; Codex still needs the manual
-step in [§5](#5-codex) below, since Codex has no plugin/marketplace or
-registry concept of its own.
+This covers the Claude Code side only; Codex still needs the one-time
+manual step in [§5](#5-codex) below, since Codex has no
+plugin/marketplace system of its own — but once that's done, Codex
+reads the same shared registry Claude Code writes to, so it doesn't
+need registering separately per project.
 
 The rest of this doc (Option B) is the manual path — read it if you're
 not using Claude Code, want to see exactly what the plugin command
@@ -194,45 +196,40 @@ version.
 
 ### 5. Codex
 
-This is genuinely different from Claude Code, not just a syntax
-change: **Codex's MCP configuration is global** (`~/.codex/config.toml`),
-not scoped per directory. There's no automatic "this repo gets this
-project" behavior the way `.mcp.json` gives Claude Code — Codex has to
-be told which project applies, every time, by you.
+Codex's MCP configuration is global (`~/.codex/config.toml`), not a
+per-repo file like Claude Code's `.mcp.json` — but Codex *does* launch
+the `mnemo` server with your actual current directory as its working
+directory, and the server resolves the project the same way it does
+for Claude Code's plugin: `MNEMO_PROJECT` if set, otherwise a lookup
+of the current directory in the shared registry
+(`~/.mnemo/projects.json`). So as long as you don't hardcode
+`MNEMO_PROJECT`, Codex automatically picks up whichever project you've
+registered for the directory you're in — same registry, same
+behavior, no separate Codex-side registration.
 
-Run the command `mnemo setup` printed:
+Run the command `mnemo setup` printed, **once, ever**:
 
 ```bash
-codex mcp add mnemo --env MNEMO_PROJECT=your-project-name -- uv run --directory /absolute/path/to/mnemo mnemo
+codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
 ```
 
-Two things that trip people up here: `--directory` points at wherever
-you cloned **mnemo itself**, not the project you're tracking — that's
-just so `uv` can find mnemo's own code to run, and has nothing to do
-with project scoping. You don't need to run this command from inside
-the target repo (`your-project-name`'s folder) either — `MNEMO_PROJECT`
-fixes the project for every call this server makes, completely
-independent of your current directory, unlike Claude Code's
-cwd-based registry.
+Use `--project`, not `--directory` — `--directory` changes Codex's
+own working directory before running `mnemo`, which breaks the
+cwd-based lookup this depends on. `--project` only tells `uv` where to
+find mnemo's own code to run, without touching the working directory.
 
-This registers **one** globally-visible `mnemo` server fixed to that
-one project. Two real options if you work across multiple projects
-with Codex:
+After that one-time setup, register any folder the normal way —
+`mnemo register --project X` from a terminal, or `/mnemo:mnemo-register X`
+from a Claude Code session in that folder — and Codex sessions started
+from that same folder resolve to `X` automatically, with no further
+Codex-specific step. Register a different folder for a different
+project, and Codex follows along the same way.
 
-- **A distinct server name per project** — run `codex mcp add` again
-  with a different `NAME` and `MNEMO_PROJECT` each time (e.g.
-  `mnemo-projectA`, `mnemo-projectB`). All of them are visible in
-  every Codex session at once — nothing hides `mnemo-projectB`'s
-  tools while you're working on projectA — so this trades isolation
-  for simplicity.
-- **A profile per project** — create `~/.codex/<name>.config.toml`
-  with just the `mnemo` server's env override for that project, then
-  start Codex with `codex -p <name>` when working there. Closer to
-  Claude Code's automatic behavior, but only if you remember to pass
-  `-p` every session.
-
-Neither is automatic the way Claude Code's per-directory config is —
-pick whichever tradeoff fits how you actually use Codex.
+If you genuinely need two Codex sessions open in two different
+projects to resolve differently *at the exact same time*, that still
+works automatically too, since resolution happens per-invocation from
+each session's own working directory — there's no shared state between
+them beyond the registry file both read from.
 
 ### 6. Running `mnemo`'s other commands (import, graph)
 

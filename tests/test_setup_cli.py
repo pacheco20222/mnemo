@@ -18,7 +18,7 @@ def _printed_json_documents(out: str) -> tuple[dict, dict]:
 
 
 def _codex_command(out: str) -> str:
-    return out.split("For Codex, run:\n\n", maxsplit=1)[1].splitlines()[0]
+    return out.split("another project:\n\n", maxsplit=1)[1].splitlines()[0]
 
 
 @pytest.mark.parametrize(
@@ -53,11 +53,8 @@ def test_setup_prints_mcp_json_and_codex_command(capsys):
     setup_cli.main(["--project", "myproj"])
     out = capsys.readouterr().out
     assert '"MNEMO_PROJECT": "myproj"' in out
-    if sys.platform == "win32":
-        env_arg = setup_cli._powershell_quote("MNEMO_PROJECT=myproj")
-        assert f"codex mcp add mnemo --env {env_arg}" in out
-    else:
-        assert "codex mcp add mnemo --env MNEMO_PROJECT=myproj" in out
+    assert "codex mcp add mnemo --" in out
+    assert "MNEMO_PROJECT" not in _codex_command(out)
     assert '"command": "uv"' in out
 
 
@@ -136,9 +133,8 @@ def test_windows_hook_and_codex_commands_encode_every_interpolated_value(
         f"uv run --directory {setup_cli._powershell_quote(install_path)} mnemo-recall"
     )
     expected_codex = (
-        "codex mcp add mnemo --env "
-        f"{setup_cli._powershell_quote(f'MNEMO_PROJECT={project}')} -- "
-        f"uv run --directory {setup_cli._powershell_quote(install_path)} mnemo"
+        "codex mcp add mnemo -- "
+        f"uv run --project {setup_cli._powershell_quote(install_path)} mnemo"
     )
 
     assert script == expected_script

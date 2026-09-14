@@ -90,28 +90,30 @@ For Claude Code: paste the printed `.mcp.json` block into your repo.
 For Cursor: paste the same block into that repo's `.cursor/mcp.json`
 instead — identical format, different file, same per-repo scoping. For
 Codex, run the command it prints — it looks like this, with your real
-path and project name filled in:
+clone path filled in:
 
 ```bash
-codex mcp add mnemo --env MNEMO_PROJECT=my-first-project -- uv run --directory /absolute/path/to/mnemo mnemo
+codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
 ```
 
-On native Windows, run `uv run mnemo setup --project my-first-project`
-from PowerShell and paste the command it prints. The generated command
-quotes the project and clone path safely and uses a JSON/TOML-compatible
-forward-slash path:
+Run this **once, ever** — not per project. Codex resolves the right
+project from your current directory against the same registry Claude
+Code uses (`mnemo register --project X`, or `/mnemo:mnemo-register`
+from Claude Code — either writes to the same file), so registering a
+folder once makes it work automatically in Codex too, no separate
+Codex-side registration or config change per project.
+
+On native Windows, run `uv run mnemo setup` from PowerShell and paste
+the command it prints — quoting/paths handled the same way:
 
 ```powershell
-codex mcp add mnemo --env 'MNEMO_PROJECT=my-first-project' -- uv run --directory 'C:/absolute/path/to/mnemo' mnemo
+codex mcp add mnemo -- uv run --project 'C:/absolute/path/to/mnemo' mnemo
 ```
 
-Run that from anywhere — `--directory` points at this mnemo clone, not
-the project you're tracking; `MNEMO_PROJECT` is what fixes the project,
-not your current directory. See [docs/INSTALL.md](docs/INSTALL.md) for
-the full walkthrough, including the real difference between how Claude
-Code and Codex scope projects. If the MCP connects but the first
-`memory_add` or `memory_search` fails while FastEmbed loads or downloads
-the model, follow the [first-tool troubleshooting steps](docs/INSTALL.md#mcp-connects-but-the-first-memory-tool-fails).
+See [docs/INSTALL.md](docs/INSTALL.md) for the full walkthrough. If
+the MCP connects but the first `memory_add` or `memory_search` fails
+while FastEmbed loads or downloads the model, follow the
+[first-tool troubleshooting steps](docs/INSTALL.md#mcp-connects-but-the-first-memory-tool-fails).
 
 ## How it works
 

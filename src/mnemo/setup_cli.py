@@ -33,9 +33,8 @@ def main(argv: list[str]) -> None:
         encoded_script = base64.b64encode(ps_script.encode("utf-16le")).decode("ascii")
         hook_command = f"powershell.exe -NoProfile -EncodedCommand {encoded_script}"
         codex_cmd = (
-            "codex mcp add mnemo --env "
-            f"{_powershell_quote(f'MNEMO_PROJECT={project}')} -- "
-            f"uv run --directory {_powershell_quote(install_path)} mnemo"
+            "codex mcp add mnemo -- "
+            f"uv run --project {_powershell_quote(install_path)} mnemo"
         )
     else:
         install_path = str(install_dir)
@@ -43,10 +42,7 @@ def main(argv: list[str]) -> None:
             f"MNEMO_PROJECT={shlex.quote(project)} "
             f"uv run --directory {shlex.quote(install_path)} mnemo-recall"
         )
-        codex_cmd = (
-            f"codex mcp add mnemo --env {shlex.quote(f'MNEMO_PROJECT={project}')} -- "
-            f"uv run --directory {shlex.quote(install_path)} mnemo"
-        )
+        codex_cmd = f"codex mcp add mnemo -- uv run --project {shlex.quote(install_path)} mnemo"
 
     mcp_config = {
         "mcpServers": {
@@ -76,9 +72,20 @@ def main(argv: list[str]) -> None:
     print(hook_json)
     print("\nFor Cursor, add the same block to your repo's .cursor/mcp.json instead (identical format, different file):\n")
     print(mcp_json)
-    print("\nFor Codex, run:\n")
+    print(
+        "\nFor Codex, run this once — it's not per-project, unlike the blocks "
+        "above. Codex resolves the right project by your current directory "
+        "against the same registry as Claude Code (see 'mnemo register' or "
+        "/mnemo:mnemo-register), so this never needs to be re-run for "
+        "another project:\n"
+    )
     print(codex_cmd)
     if sys.platform == "win32":
         print("\n(Run this from PowerShell, not cmd.exe — the quoting above assumes it.)")
     if args.project is None:
-        print("\n(Replace 'your-project-name' with your actual project id, or re-run with --project NAME.)")
+        print(
+            "\n(Replace 'your-project-name' with your actual project id in "
+            "the .mcp.json/.cursor/mcp.json/hook blocks above, or re-run "
+            "with --project NAME — this doesn't apply to the Codex command, "
+            "which has no project baked in.)"
+        )
