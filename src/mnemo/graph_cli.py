@@ -57,11 +57,17 @@ def _render_html(graph: dict) -> str:
 def main(argv: list[str]) -> None:
     parser = argparse.ArgumentParser(prog="mnemo graph")
     parser.add_argument("--project", default=None)
+    parser.add_argument("--all", action="store_true", help="graph every project together, not just one")
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
 
+    if args.project and args.all:
+        parser.error("--project and --all are mutually exclusive")
+
+    project = None if args.all else (args.project or config.get_project())
+
     client = store.get_client()
-    records = store.get_all_with_vectors(client, project=args.project)
+    records = store.get_all_with_vectors(client, project=project)
 
     if len(records) < 2:
         print("Need at least 2 memories to build a graph.")

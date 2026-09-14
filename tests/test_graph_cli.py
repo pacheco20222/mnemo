@@ -71,3 +71,35 @@ def test_main_handles_fewer_than_two_records(tmp_path, monkeypatch, capsys):
     graph_cli.main(["--project", "a-project-with-zero-memories-for-graph-test", "--out", str(out_path)])
     assert not out_path.exists()
     assert "at least 2" in capsys.readouterr().out
+
+
+def test_main_without_project_or_all_uses_current_project(monkeypatch):
+    monkeypatch.setenv("MNEMO_PROJECT", "env-project")
+    seen = {}
+
+    def fake_get_all_with_vectors(client, project=None):
+        seen["project"] = project
+        return []
+
+    monkeypatch.setattr(graph_cli.store, "get_all_with_vectors", fake_get_all_with_vectors)
+    graph_cli.main([])
+    assert seen["project"] == "env-project"
+
+
+def test_main_with_all_flag_ignores_current_project(monkeypatch):
+    monkeypatch.setenv("MNEMO_PROJECT", "env-project")
+    seen = {}
+
+    def fake_get_all_with_vectors(client, project=None):
+        seen["project"] = project
+        return []
+
+    monkeypatch.setattr(graph_cli.store, "get_all_with_vectors", fake_get_all_with_vectors)
+    graph_cli.main(["--all"])
+    assert seen["project"] is None
+
+
+def test_main_rejects_project_and_all_together(monkeypatch):
+    monkeypatch.setenv("MNEMO_PROJECT", "env-project")
+    with pytest.raises(SystemExit):
+        graph_cli.main(["--project", "x", "--all"])

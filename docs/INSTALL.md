@@ -43,6 +43,22 @@ Repeat both commands (with that repo's own project name) in any other
 repo you want Mnemo in — no cloning or hand-edited config, ever, and by
 default each repo's memory stays separate from every other repo's.
 
+Already registered this folder some other way — via Codex, or `mnemo
+register` run from a terminal? Skip `/mnemo:mnemo-register` and just
+install the plugin:
+
+```
+/plugin marketplace add pacheco20222/mnemo
+/plugin install mnemo --scope project
+```
+
+The plugin resolves the project the same way Codex does — an explicit
+env var if one's set, otherwise a lookup of this folder in the shared
+registry (`~/.mnemo/projects.json`) — so an existing registration is
+picked up automatically. Nothing about registration is tool-specific;
+it only ever needs doing once, by whichever tool you happen to be
+using first.
+
 If you'd rather have Mnemo available in *every* project without
 installing it repo by repo, use `--scope user` instead (Claude Code's
 default if `--scope` is omitted) — the plugin and its MCP server are
@@ -257,11 +273,16 @@ resolves against **mnemo's** folder, not yours, unless you `cd` into
 mnemo first (first example above) or pass an absolute path to the
 file instead.
 
-`mnemo graph` without `--project` graphs every project's memories
-together, not just one. It needs at least 2 memories to draw anything,
-writes a self-contained HTML file (`--out path.html` to control
-where — defaults to your current directory), and opens it in your
-default browser automatically.
+`mnemo graph` defaults to the same project `memory_add`/`memory_search`
+would resolve to from your current directory (env var, then the
+registry) — same isolation as everything else. Pass `--project X` to
+graph a specific project regardless of where you're standing, or
+`--all` to deliberately graph every project's memories together (real
+cross-project similarities can be genuinely useful to see, just ask
+for it explicitly). It needs at least 2 memories in scope to draw
+anything, writes a self-contained HTML file (`--out path.html` to
+control where — defaults to your current directory), and opens it in
+your default browser automatically.
 
 ### 7. Windows
 

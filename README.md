@@ -15,7 +15,7 @@ another repo's memory by accident.
 - **Named documents** — a project overview or running dev log that updates in place instead of piling up, also auto-loaded every session.
 - **`memory_search_global`** — the one explicit, deliberate escape hatch for a genuinely cross-project question.
 - **`mnemo import`** — bulk-load an existing file into a project's memory. Run yourself, from a terminal — see [docs/INSTALL.md §6](docs/INSTALL.md#6-running-mnemos-other-commands-import-graph).
-- **`mnemo graph`** — a real, embedding-similarity graph of your memories, rendered locally and opened in your browser. Same terminal invocation as `import` above.
+- **`mnemo graph`** — a real, embedding-similarity graph of your memories, rendered locally and opened in your browser. Scoped to the current project by default, same as everything else; `--all` graphs every project together, deliberately. Same terminal invocation as `import` above.
 
 ## Requirements
 
@@ -60,6 +60,20 @@ a project overview, seeded from `CLAUDE.md`/`AGENTS.md`/`PROJECT.md`/
 `README.md` if one exists (condensed, not pasted verbatim) or a short
 paragraph you give it otherwise. It's optional and only happens if you
 say yes; you can always add or replace it later the same way.
+
+Already registered this folder some other way — via Codex, or `mnemo
+register` from a terminal — and just want Claude Code to pick up the
+same project here? Skip `/mnemo:mnemo-register` entirely:
+
+```
+/plugin marketplace add pacheco20222/mnemo
+/plugin install mnemo --scope project
+```
+
+That's the whole thing. The plugin resolves the project the same way
+Codex does — env var if set, otherwise the shared registry
+(`~/.mnemo/projects.json`) keyed by this folder — so an existing
+registration just works, no re-registering per tool.
 
 Want Mnemo available everywhere without installing it repo by repo?
 Use `--scope user` instead (Claude Code's default if you omit
