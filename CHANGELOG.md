@@ -1,5 +1,51 @@
 # Changelog
 
+## 2.2.0 — 2026-09-15
+
+### Added
+- Cursor support: `.cursor/mcp.json` documented alongside `.mcp.json`,
+  and `mnemo setup` now prints that block too.
+- `memory_get_latest(type)` tool — the chronological "newest by
+  `created_at`" lookup that already backed the Claude Code
+  `SessionStart` hook's checkpoint auto-load is now callable directly.
+  Previously the only tool available for "what's the latest
+  checkpoint" was `memory_search`, which ranks by semantic similarity
+  and can return an older, more textually-relevant memory instead of
+  the actual newest one.
+- `/mnemo:mnemo-register` now offers to seed a project overview
+  ("core memory") right after registering, from `CLAUDE.md`/
+  `AGENTS.md`/`PROJECT.md`/`README.md` if one exists, or a short
+  paragraph otherwise. `overview` added as a first-class memory type
+  instead of overloading `architecture` for it.
+- `mnemo graph --all` — explicit opt-in for graphing every project's
+  memories together.
+
+### Changed
+- Plugin install quick start now recommends `--scope project` by
+  default instead of the implicit `user` (global) scope, so installing
+  the plugin doesn't silently attach it to every repo you open.
+- `mnemo graph` with no `--project` now defaults to the current
+  directory's registered project, matching `memory_add`/
+  `memory_search`'s existing isolation — previously it defaulted to
+  graphing every project together, which read as project data
+  leaking when it wasn't.
+- Codex's documented setup no longer pins `MNEMO_PROJECT` per
+  `codex mcp add`. Codex genuinely resolves the project from the
+  current working directory against the same shared registry Claude
+  Code's plugin uses — this was never actually verified before and
+  the docs claimed the opposite, recommending a per-project server or
+  profile workaround that was never necessary.
+
+### Fixed
+- Qdrant's data now lives in a named Docker volume instead of a bind
+  mount inside the plugin's own install directory. The old bind mount
+  path (`~/.claude/plugins/cache/mnemo/mnemo/<version>/qdrant_storage`)
+  is deleted on every plugin uninstall and replaced on every version
+  update — silently destroying all stored memories in the process,
+  while the still-running Qdrant container kept answering requests
+  with an orphaned storage path, making the failure confusing to
+  diagnose.
+
 ## 2.1.1 — 2026-09-07
 
 ### Fixed
