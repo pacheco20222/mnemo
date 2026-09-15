@@ -93,36 +93,53 @@ that actually toggles a scope on for an already-installed plugin.
 
 ## Quick start (manual / Cursor / Codex)
 
+First, once, regardless of which of these you use:
+
 ```bash
 git clone git@github.com:pacheco20222/mnemo.git
 cd mnemo
 docker compose up -d
-uv run mnemo setup --project my-first-project
 ```
 
-For Claude Code: paste the printed `.mcp.json` block into your repo.
-For Cursor: paste the same block into that repo's `.cursor/mcp.json`
-instead — identical format, different file, same per-repo scoping. For
-Codex, run the command it prints — it looks like this, with your real
-clone path filled in:
+These three work differently from each other — read the one that
+applies to you, not all three in sequence.
 
-```bash
-codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
-```
+**Claude Code (manual, non-plugin):** for each repo you want memory
+in, run `uv run mnemo setup --project my-project-name` and paste the
+printed `.mcp.json` block into that repo. The project is baked into
+the pasted file — nothing else to do, no separate registration.
+Repeat per repo, with that repo's own `--project` value.
 
-Run this **once, ever** — not per project. Codex resolves the right
-project from your current directory against the same registry Claude
-Code uses (`mnemo register --project X`, or `/mnemo:mnemo-register`
-from Claude Code — either writes to the same file), so registering a
-folder once makes it work automatically in Codex too, no separate
-Codex-side registration or config change per project.
+**Cursor:** identical to Claude Code above — same `mnemo setup
+--project X`, same per-repo repeat — except paste the block into
+`.cursor/mcp.json` instead of `.mcp.json`.
 
-On native Windows, run `uv run mnemo setup` from PowerShell and paste
-the command it prints — quoting/paths handled the same way:
+**Codex is different: two separate steps, not one command per
+project.**
 
-```powershell
-codex mcp add mnemo -- uv run --project 'C:/absolute/path/to/mnemo' mnemo
-```
+1. Set up the MCP server **once, ever**, with no project attached:
+   ```bash
+   codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
+   ```
+   Never repeat this for a new project — one server entry serves
+   every project you register from here on.
+2. **For every project folder** you want memory in, register it —
+   this is the step it's easy to miss, since Codex has no plugin
+   command to do it for you:
+   ```bash
+   cd /path/to/your-project
+   uv run --project /absolute/path/to/mnemo mnemo register --project your-project-name
+   ```
+   Run once per folder, from inside that folder. From then on, any
+   Codex session started there resolves to `your-project-name`
+   automatically — Codex reads the project from your current
+   directory against the same registry Claude Code's plugin uses
+   (`~/.mnemo/projects.json`), not from anything in step 1.
+
+On native Windows, run `uv run mnemo setup` from PowerShell for the
+Claude Code/Cursor blocks and the Codex one-time command, with
+quoting handled for you — `mnemo register` itself needs no special
+Windows handling.
 
 See [docs/INSTALL.md](docs/INSTALL.md) for the full walkthrough. If
 the MCP connects but the first `memory_add` or `memory_search` fails

@@ -76,10 +76,11 @@ installs a plugin's code once, machine-wide. Use
 on for an already-installed plugin.
 
 This covers the Claude Code side only; Codex still needs the one-time
-manual step in [§5](#5-codex) below, since Codex has no
-plugin/marketplace system of its own — but once that's done, Codex
-reads the same shared registry Claude Code writes to, so it doesn't
-need registering separately per project.
+server setup in [§5](#5-codex) below, since Codex has no
+plugin/marketplace system of its own. Codex still needs each folder
+registered too, same as Claude Code — but it reads the same shared
+registry, so if you already registered a folder via
+`/mnemo:mnemo-register`, Codex picks it up with no separate step.
 
 The rest of this doc (Option B) is the manual path — read it if you're
 not using Claude Code, want to see exactly what the plugin command
@@ -219,11 +220,17 @@ directory, and the server resolves the project the same way it does
 for Claude Code's plugin: `MNEMO_PROJECT` if set, otherwise a lookup
 of the current directory in the shared registry
 (`~/.mnemo/projects.json`). So as long as you don't hardcode
-`MNEMO_PROJECT`, Codex automatically picks up whichever project you've
-registered for the directory you're in — same registry, same
-behavior, no separate Codex-side registration.
+`MNEMO_PROJECT`, Codex automatically picks up whichever project a
+folder is registered as — using Claude Code's own registration
+mechanism (`mnemo register` / `/mnemo:mnemo-register`), not a
+Codex-specific one.
 
-Run the command `mnemo setup` printed, **once, ever**:
+This is two separate steps, not one command per project — easy to
+miss since the whole point is that step 1 never mentions a project at
+all.
+
+**Step 1 — once, ever, on this machine.** Run the command `mnemo setup`
+printed:
 
 ```bash
 codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
@@ -231,15 +238,26 @@ codex mcp add mnemo -- uv run --project /absolute/path/to/mnemo mnemo
 
 Use `--project`, not `--directory` — `--directory` changes Codex's
 own working directory before running `mnemo`, which breaks the
-cwd-based lookup this depends on. `--project` only tells `uv` where to
-find mnemo's own code to run, without touching the working directory.
+cwd-based lookup step 2 depends on. `--project` only tells `uv` where
+to find mnemo's own code to run, without touching the working
+directory. Never repeat this step for a new project; one server entry
+serves all of them.
 
-After that one-time setup, register any folder the normal way —
-`mnemo register --project X` from a terminal, or `/mnemo:mnemo-register X`
-from a Claude Code session in that folder — and Codex sessions started
-from that same folder resolve to `X` automatically, with no further
-Codex-specific step. Register a different folder for a different
-project, and Codex follows along the same way.
+**Step 2 — once per folder you want memory in.** Register it, from
+inside that folder:
+
+```bash
+cd /path/to/your-project
+uv run --project /absolute/path/to/mnemo mnemo register --project your-project-name
+```
+
+(Already registered that folder via Claude Code's `/mnemo:mnemo-register`
+instead? Same registry, so this step is already done — skip it.)
+
+After that, any Codex session started in that folder resolves to
+`your-project-name` automatically, with no further Codex-specific
+step. Register a different folder for a different project the same
+way, and Codex follows along.
 
 If you genuinely need two Codex sessions open in two different
 projects to resolve differently *at the exact same time*, that still

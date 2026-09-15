@@ -36,6 +36,10 @@ def main(argv: list[str]) -> None:
             "codex mcp add mnemo -- "
             f"uv run --project {_powershell_quote(install_path)} mnemo"
         )
+        register_cmd = (
+            f"uv run --project {_powershell_quote(install_path)} "
+            f"mnemo register --project {_powershell_quote(project)}"
+        )
     else:
         install_path = str(install_dir)
         hook_command = (
@@ -43,6 +47,10 @@ def main(argv: list[str]) -> None:
             f"uv run --directory {shlex.quote(install_path)} mnemo-recall"
         )
         codex_cmd = f"codex mcp add mnemo -- uv run --project {shlex.quote(install_path)} mnemo"
+        register_cmd = (
+            f"uv run --project {shlex.quote(install_path)} "
+            f"mnemo register --project {shlex.quote(project)}"
+        )
 
     mcp_config = {
         "mcpServers": {
@@ -73,13 +81,18 @@ def main(argv: list[str]) -> None:
     print("\nFor Cursor, add the same block to your repo's .cursor/mcp.json instead (identical format, different file):\n")
     print(mcp_json)
     print(
-        "\nFor Codex, run this once — it's not per-project, unlike the blocks "
-        "above. Codex resolves the right project by your current directory "
-        "against the same registry as Claude Code (see 'mnemo register' or "
-        "/mnemo:mnemo-register), so this never needs to be re-run for "
+        "\nFor Codex, this is two separate steps, not one command per "
+        "project. First, run this once, ever — never re-run it for "
         "another project:\n"
     )
     print(codex_cmd)
+    print(
+        "\nThen, for EVERY project folder you want memory in, register it "
+        "(once per folder, from inside that folder) — skip this if you "
+        "already registered it via Claude Code's /mnemo:mnemo-register, "
+        "same shared registry:\n"
+    )
+    print(f"cd /path/to/your-project && {register_cmd}")
     if sys.platform == "win32":
         print("\n(Run this from PowerShell, not cmd.exe — the quoting above assumes it.)")
     if args.project is None:
