@@ -48,6 +48,7 @@ permission check.
 - **`memory_search_global(query: str, type: str | None = None, k: int = 5) -> list[dict]`** — the same search, across every project. Use only for an explicitly cross-project ask.
 - **`memory_set_document(slug: str, content: str, type: str) -> dict`** — replace-in-place, keyed by `(project, slug)`. Use for content that should supersede its previous version — a project overview, a running dev log — not accumulate.
 - **`memory_get_document(slug: str) -> dict | None`** — exact lookup by slug, no embedding call involved.
+- **`memory_get_latest(type: str) -> dict | None`** — newest memory of that type by `created_at`, no embedding call involved. Use this for "what's the latest checkpoint" — `memory_search` ranks by semantic similarity to the query text, not recency, and can return an older but more textually-relevant memory instead of the actual newest one.
 - **`memory_register_project(name: str) -> dict`** — registers the current folder (the server's own working directory) under `name` in the local registry, so future calls in that folder resolve the project automatically. Needs no project to already be set — this is how a brand-new, unregistered folder bootstraps.
 
 ## Checkpoint / resume

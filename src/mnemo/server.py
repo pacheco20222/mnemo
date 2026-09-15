@@ -21,7 +21,13 @@ mcp = FastMCP(
         "it replaces any existing document with the same slug rather than "
         "creating a duplicate. Use memory_get_document(slug) to read one "
         "back by name. The project overview document's slug should be the "
-        "project's own name. There is also memory_search_global(query, "
+        "project's own name. When asked for the latest/most recent memory "
+        "of a given type (e.g. \"what's the latest checkpoint\"), call "
+        "memory_get_latest(type) — it returns the newest one by actual "
+        "timestamp. Never use memory_search for this: it ranks by semantic "
+        "similarity to the query text, not recency, and can surface an "
+        "older but more textually-relevant memory instead of the newest "
+        "one. There is also memory_search_global(query, "
         "type, k), which searches across every project, not just this "
         "one. Only call it when the user explicitly asks for something "
         "cross-project (e.g. \"what have I done across all my "
@@ -86,6 +92,13 @@ def memory_set_document(slug: str, content: str, type: str) -> dict:
 def memory_get_document(slug: str) -> dict | None:
     project = config.get_project()
     return store.get_document(_get_client(), project, slug)
+
+
+@mcp.tool
+def memory_get_latest(type: str) -> dict | None:
+    project = config.get_project()
+    config.validate_type(type)
+    return store.get_latest(_get_client(), project, type)
 
 
 @mcp.tool

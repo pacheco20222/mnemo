@@ -72,6 +72,23 @@ def test_memory_get_document_returns_none_for_unknown_slug():
     assert server.memory_get_document("a-slug-that-was-never-set") is None
 
 
+def test_memory_get_latest_returns_newest_by_timestamp_not_relevance():
+    server.memory_add("older checkpoint, textually very similar to the query", "checkpoint")
+    newest = server.memory_add("totally unrelated wording checkpoint", "checkpoint")
+
+    latest = server.memory_get_latest("checkpoint")
+    assert latest["id"] == newest["id"]
+
+
+def test_memory_get_latest_returns_none_when_nothing_saved():
+    assert server.memory_get_latest("todo") is None
+
+
+def test_memory_get_latest_rejects_invalid_type():
+    with pytest.raises(ValueError):
+        server.memory_get_latest("nonsense")
+
+
 def test_mcp_protocol_document_round_trip():
     async def run():
         async with Client(server.mcp) as client:

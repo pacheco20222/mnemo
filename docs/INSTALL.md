@@ -206,10 +206,13 @@ equivalent, so there's no bundled-plugin install path and no automatic
 checkpoint/document auto-load the way Claude Code's optional hook
 gives you — `memory_add`/`memory_search`/`memory_get_document` work
 once the server's connected, but recall at the start of a session is
-manual (ask the agent to call `memory_get_document` or
-`memory_search` for a checkpoint) unless you wire up your own
+manual: ask the agent to call `memory_get_document` for the project
+overview, and `memory_get_latest(type="checkpoint")` — **not**
+`memory_search`, which ranks by semantic similarity to whatever query
+text gets used and can surface an older but more textually-relevant
+checkpoint instead of the actual newest one. Wire up your own
 equivalent of Cursor's session-start behavior, if it has one in your
-version.
+version, to make this automatic instead of asked-for.
 
 ### 5. Codex
 
